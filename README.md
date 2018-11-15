@@ -22,19 +22,19 @@ N: Input Length<br/>
 
 ## Analysis ##
 
-![](https://i.imgur.com/eFI42S1.png) <br/>
+![](https://i.imgur.com/pW9tTEc.png) <br/>
 x: filter cases<br/>
 y: memory used(kb)<br/>
 dialog length(char):500<br/>
 <br/>
 <br/>
-![](https://i.imgur.com/qFRnh7b.png) <br/>
+![](https://i.imgur.com/7guqIaN.png) <br/>
 x: filter cases<br/>
 y: average finished time(sec)<br/>
 dialog length(char):500<br/>
 <br/>
 <br/>
-![](https://i.imgur.com/IhAiPt0.png) <br/>
+![](https://i.imgur.com/gNDcBKR.png) <br/>
 x: dialog length(char)<br/>
 y: average finished time(sec)<br/>
 filter cases:216000<br/>
