@@ -3,21 +3,18 @@
 ## Complexity Evaluation ##
 
 #### Double Array Trie ####
-![](https://i.imgur.com/BQ6VJ03.png) <br/>
-*from http://www.mathcs.emory.edu/~cheung/Courses/323/Syllabus/Text/trie01.html*
+![](http://www.csie.ntnu.edu.tw/~u91029/Trie5.png) <br/>
+*from http://www.csie.ntnu.edu.tw/~u91029/String.html*
 <br/>
 <br/>
 <br/>
 
-|               |Time             |Space       |
-| ------------- |:---------------:|-----------:|
-| DAT           | `O()`           | `O()`      |
+|               |Time             |
+| ------------- |:---------------:|
+| DAT           | `O(N)`          |
 
 <br/>
-N: number of words<br/>
-L: average length of words<br/>
-K: number of matches<br/>
-R: size of alphabet<br/>
+N: Input Length<br/>
 <br/>
 
 
