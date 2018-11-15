@@ -35,10 +35,12 @@ x: filter cases<br/>
 y: average finished time(sec)<br/>
 dialog length(char):500<br/>
 <br/>
+As expect, filter cases are not relative to time<br/>
 <br/>
 ![](https://i.imgur.com/gNDcBKR.png) <br/>
 x: dialog length(char)<br/>
 y: average finished time(sec)<br/>
 filter cases:216000<br/>
 <br/>
+As expect, dialog length are in direct proportion to time<br/>
 <br/>
