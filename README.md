@@ -28,7 +28,7 @@ x: filter cases<br/>
 y: memory used(kb)<br/>
 dialog length(char):500<br/>
 <br/>
-The result not seem to be a clear direct proportion because there is a special array-resizing funcion were used<br/>
+The result not seem to be a clear direct proportion because there is a special array-resizing funcion were used, were the sudden rise between two points means the array size was resized to double<br/>
 <br/>
 ![](https://i.imgur.com/7guqIaN.png) <br/>
 x: filter cases<br/>
