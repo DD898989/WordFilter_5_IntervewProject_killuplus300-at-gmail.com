@@ -18,9 +18,6 @@ N: Input Length<br/>
 M: Filter Cases<br/>
 <br/>
 
-
-## Implementation ##
-
 ## Analysis ##
 
 ![](https://i.imgur.com/pW9tTEc.png) <br/>
