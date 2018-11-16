@@ -435,7 +435,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		QueryPerformanceFrequency(&nFreq);
 		QueryPerformanceCounter(&nBeginTime);
 		
-		//covert input to lower case
+		//convert input to lower case
 		for(int i=0;i<seq_.length();i++) 
 			seq_[i]= towlower(seq_[i]);
 		
