@@ -17,14 +17,14 @@ typedef struct DAT
 	wstring content;
 };
 //-----------------------------------------
-typedef struct node
+typedef struct Node
 {
 	wstring WS;
-	bool IsEndChar;
+	bool bIsEndChar;
 };
 //-----------------------------------------
 vector<DAT>  m_dat;
-vector<node> m_ReInsertString;
+vector<Node> m_ReInsertString;
 //-----------------------------------------
 string wstring_to_utf8 (const wstring& str)
 {
@@ -65,16 +65,16 @@ void recursive_reset(int id)
 	{
 		if(m_dat[i].check==id)
 		{
-			node *record = new node;
-			record->WS=m_dat[i].content;
+			Node *node = new Node;
+			node->WS=m_dat[i].content;
 
 			if(m_dat[i].base<0)
-				record->IsEndChar=true;
+				node->bIsEndChar=true;
 			else
-				record->IsEndChar=false;
+				node->bIsEndChar=false;
 
-			m_ReInsertString.push_back(*record);
-			delete record;
+			m_ReInsertString.push_back(*node);
+			delete node;
 			m_dat[i].check=0;
 			m_dat[i].base=0;
 			m_dat[i].content=L"";
@@ -85,7 +85,7 @@ void recursive_reset(int id)
 //-----------------------------------------
 struct compareNodeString
 {
-	bool operator()(const node& first, const node& second) 
+	bool operator()(const Node& first, const Node& second) 
 	{
 		return first.WS > second.WS; 
 	}
@@ -93,7 +93,7 @@ struct compareNodeString
 //-----------------------------------------
 struct compareNodeStringLen
 {
-	bool operator()(const node& first, const node& second) 
+	bool operator()(const Node& first, const Node& second) 
 	{
 		return first.WS.length() < second.WS.length(); 
 	}
@@ -164,7 +164,7 @@ int Get_LandLordID_From_Tenant(wstring ws)
 	return Search(LandLord,false);
 }
 //-----------------------------------------
- void InsertBase(vector<node> &vNodes)
+ void InsertBase(vector<Node> &vNodes)
 {
 	int nLandLordID = Get_LandLordID_From_Tenant(vNodes[0].WS);
 	
@@ -195,7 +195,7 @@ int Get_LandLordID_From_Tenant(wstring ws)
 			m_dat[k+ids[n]].check=nLandLordID;
 			m_dat[k+ids[n]].content=vNodes[n].WS;
 
-			if(vNodes[n].IsEndChar)
+			if(vNodes[n].bIsEndChar)
 				m_dat[k+ids[n]].base=-(k+ids[n]);
 			else
 				m_dat[k+ids[n]].base=0;
@@ -232,19 +232,19 @@ void Insert(wstring str)
 
 			for(int m=i;m<str.length();m++)
 			{
-				node *record = new node;
+				Node *node = new Node;
 
-				record->WS=wsTemp;
+				node->WS=wsTemp;
 
 				if(m==i)
-					record->IsEndChar=true;
+					node->bIsEndChar=true;
 				else
-					record->IsEndChar=false;
+					node->bIsEndChar=false;
 
-				m_ReInsertString.push_back(*record);
+				m_ReInsertString.push_back(*node);
 				wsTemp=wsTemp.substr(0,wsTemp.size()-1);
 
-				delete record;
+				delete node;
 			}
 			break;
 		}
@@ -261,7 +261,7 @@ void Insert(wstring str)
 	compareNodeString c2;
 	sort(m_ReInsertString.begin(), m_ReInsertString.end(),c2);
 
-	vector<node> m_ReInsertStringForEachLen;
+	vector<Node> m_ReInsertStringForEachLen;
 	for(int i=m_nMinLenForReInsert;i<m_nMaxLenForReInsert+1;i++)
 	{
 		m_ReInsertStringForEachLen.clear();
@@ -290,10 +290,10 @@ void Insert(wstring str)
 	m_ReInsertStringForEachLen.clear();
 }
 //-----------------------------------------
-void GroupInsert(vector<node> &vNodes)
+void GroupInsert(vector<Node> &vNodes)
 {
 	wstring temp = vNodes.back().WS.substr(0,vNodes.back().WS.length()-1);
-	vector<node> vNodesInserting;
+	vector<Node> vNodesInserting;
 
 	while(vNodes.size()>0 && vNodes.back().WS.substr(0,vNodes.back().WS.length()-1) == temp)
 	{
@@ -337,8 +337,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 	
 	compareStringLen c;
-	sort(vWords.begin(), vWords.end(), c);
-
+	sort(vWords.begin(), vWords.end(), c);//sorting as reverse length order(inserting order: the shorter the prior, so pop-back the shortest for vector efficiency)
 	for(int i=vWords.size()-1;i>=0;i--) // resizing to exact space
 	{
 		if(vWords[i].length()!=0)
@@ -352,71 +351,71 @@ int _tmain(int argc, _TCHAR* argv[])
 	int maxLen = vWords.front().length(); //max len word in dictionary
 
 	
-	//insert every words from dictionay to double-array trie
-	for(int k=1; k<=maxLen; k++) 
+	//group insert every words from dictionay to double-array trie (faster then insert one-by-one)
+	for(int k=1; k<=maxLen; k++) //from 1 not minLen, middle node start from length 1, a completely word strat from minLen
 	{
 		cout<<"Reading dictionary file, remaining: "<<vWords.size()<<endl;
 
-		vector<node> vWords_Inserting;
+		vector<Node> vNodes;
 
 		for(int i=vWords.size()-1;i>=0;i--)
 		{
-			node *record = new node;
+			Node *node = new Node; // "Node.bIsEndChar" indicate whether string is a completely word or a middle node
 			if(vWords[i].length()==k)
 			{
-				record->WS=vWords[i];     
+				node->WS=vWords[i];     
 
-				record->IsEndChar=true;   
+				node->bIsEndChar=true;   
 
-				vWords_Inserting.push_back(*record);
+				vNodes.push_back(*node);
 				vWords.pop_back();
 			}
 			else
 			{
-				record->WS=vWords[i].substr(0,k);   
+				node->WS=vWords[i].substr(0,k);   
 
-				record->IsEndChar=false;   
+				node->bIsEndChar=false;   
 
-				vWords_Inserting.push_back(*record);
+				vNodes.push_back(*node);
 			}
-			delete 	record;
+			delete 	node;
 		}
 
+		//remove same strings, keep "bIsEndChar" as true one if has
 		compareNodeString c;
-		sort(vWords_Inserting.begin(), vWords_Inserting.end(),c);
-
-		for(int i=vWords_Inserting.size()-1;i>=1;i--)
+		sort(vNodes.begin(), vNodes.end(),c);
+		for(int i=vNodes.size()-1;i>=1;i--)
 		{
-			if(vWords_Inserting[i].WS==vWords_Inserting[i-1].WS)
+			if(vNodes[i].WS==vNodes[i-1].WS)
 			{
-				if( vWords_Inserting[i].IsEndChar!=vWords_Inserting[i-1].IsEndChar)
+				if( vNodes[i].bIsEndChar!=vNodes[i-1].bIsEndChar)
 				{
-						vWords_Inserting[i].WS=L"";
-						vWords_Inserting[i-1].IsEndChar=true;
+						vNodes[i].WS=L"";
+						vNodes[i-1].bIsEndChar=true;
 				}
 				else
 				{
-						vWords_Inserting[i].WS=L"";
+						vNodes[i].WS=L"";
 				}
 			}
 		}
 
+		//resizing to exact space
 		compareNodeString c1;
-		sort(vWords_Inserting.begin(), vWords_Inserting.end(),c1);
-		
-		for(int i=vWords_Inserting.size()-1;i>=1;i--)
+		sort(vNodes.begin(), vNodes.end(),c1);
+		for(int i=vNodes.size()-1;i>=1;i--)
 		{
-			if(vWords_Inserting[i].WS!=L"")
+			if(vNodes[i].WS!=L"")
 			{
-				vWords_Inserting.resize(i+1);
+				vNodes.resize(i+1);
 				break;
 			}
 		}
 
-		while(vWords_Inserting.size() != 0)
-			GroupInsert(vWords_Inserting);
+		while(vNodes.size() != 0) //group inserting all the nodes that have same target id
+			GroupInsert(vNodes);
 		
-		vWords_Inserting.clear();
+		vNodes.clear();
 	}
 
 	wstring newWrod;
