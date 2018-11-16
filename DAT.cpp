@@ -78,7 +78,7 @@ void recursive_reset(int id)
 			m_dat[i].check=0;
 			m_dat[i].base=0;
 			m_dat[i].content=L"";
-			recursive_reset(i);
+			recursive_reset(i); //recursive to move all the relative node from theirs target ids
 		}
 	}
 }
@@ -176,7 +176,7 @@ int Get_LandLordID_From_Tenant(wstring ws)
 	for(int k=1;k<m_dat.size();k+=rand()/100+1)
 	{
 		int i=0;
-		for(;i<vNodes.size();i++)
+		for(;i<vNodes.size();i++) // for loop to find suitable empty nodes for all vNodes
 		{
 			Expand(m_dat,k+ids[i]);
 			if(m_dat[k+ids[i]].content.length()!=0)
@@ -190,7 +190,7 @@ int Get_LandLordID_From_Tenant(wstring ws)
 		else
 			m_dat[nLandLordID].base=k;
 
-		for(int n=0;n<vNodes.size();n++)
+		for(int n=0;n<vNodes.size();n++) //inserting
 		{
 			m_dat[k+ids[n]].check=nLandLordID;
 			m_dat[k+ids[n]].content=vNodes[n].WS;
@@ -206,18 +206,18 @@ int Get_LandLordID_From_Tenant(wstring ws)
 	delete ids;
 }
 //-----------------------------------------
-void Insert(wstring str)
+void Insert(wstring str)// for single insert
 {
-	if(str.length()<=1)
+	if(str.length()<=1)// takes too long to rebuild the whole DAT, so reject input length 1 
 		return;
 
-	if(Search(str,true)!=-1)
+	if(Search(str,true)!=-1)// already have
 		return;
 
 	int base=str[0]+abs(m_dat[0].base);
 	int base_pre=0;
 
-	for(int i=0;i<str.length();i++)
+	for(int i=0;i<str.length();i++) //search down the trie
 	{
 		Expand(m_dat,base);
 
@@ -227,7 +227,7 @@ void Insert(wstring str)
 		else
 		{
 			m_ReInsertString.clear();   
-			recursive_reset(base_pre);
+			recursive_reset(base_pre); //move all the nodes have same target id and those nodes targets them as well, all move to m_ReInsertString
 			wstring wsTemp = str; 
 
 			for(int m=i;m<str.length();m++)
@@ -241,7 +241,7 @@ void Insert(wstring str)
 				else
 					node->bIsEndChar=false;
 
-				m_ReInsertString.push_back(*node);
+				m_ReInsertString.push_back(*node); //insert all relative node from insert string,  ex: insert "hello", "he" already exist, so push_back "hel"(mid)、"hell"(mid)、"hello"(end)
 				wsTemp=wsTemp.substr(0,wsTemp.size()-1);
 
 				delete node;
@@ -254,7 +254,6 @@ void Insert(wstring str)
 
 	compareNodeStringLen c1;
 	sort(m_ReInsertString.begin(), m_ReInsertString.end(),c1);
-
 	int m_nMinLenForReInsert=m_ReInsertString.front().WS.length();
 	int m_nMaxLenForReInsert=m_ReInsertString.back().WS.length();
 
@@ -275,14 +274,14 @@ void Insert(wstring str)
 			}
 			else if(m_ReInsertString[j].WS==L"" && m_ReInsertStringForEachLen.size()>0)
 			{
-				InsertBase(m_ReInsertStringForEachLen);
+				InsertBase(m_ReInsertStringForEachLen); //group insert all the nodes that have same target id
 				m_ReInsertStringForEachLen.clear();
 			}
 		}
 
 		if(m_ReInsertStringForEachLen.size()>0)
 		{
-			InsertBase(m_ReInsertStringForEachLen);
+			InsertBase(m_ReInsertStringForEachLen);     //group insert all the nodes that have same target id
 			m_ReInsertStringForEachLen.clear();
 		}
 	}
@@ -290,18 +289,18 @@ void Insert(wstring str)
 	m_ReInsertStringForEachLen.clear();
 }
 //-----------------------------------------
-void GroupInsert(vector<Node> &vNodes)
+void GroupInsert(vector<Node> &vNodes)//for group insert from dictionary
 {
 	wstring temp = vNodes.back().WS.substr(0,vNodes.back().WS.length()-1);
 	vector<Node> vNodesInserting;
 
-	while(vNodes.size()>0 && vNodes.back().WS.substr(0,vNodes.back().WS.length()-1) == temp)
+	while(vNodes.size()>0 && vNodes.back().WS.substr(0,vNodes.back().WS.length()-1) == temp) //filter out all the nodes the have the same target id
 	{
 		vNodesInserting.push_back(vNodes.back());
 		vNodes.pop_back();
 	}
 	InsertBase(vNodesInserting);
-		vNodesInserting.clear();
+	vNodesInserting.clear();
 }
 //-----------------------------------------
 int _tmain(int argc, _TCHAR* argv[])
@@ -412,7 +411,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 		}
 
-		while(vNodes.size() != 0) //group inserting all the nodes that have same target id
+		while(vNodes.size() != 0) //group insert all the nodes that have same target id
 			GroupInsert(vNodes);
 		
 		vNodes.clear();
