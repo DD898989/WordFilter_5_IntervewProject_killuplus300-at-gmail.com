@@ -313,18 +313,18 @@ int _tmain(int argc, _TCHAR* argv[])
 	typedef codecvt_utf8<wchar_t> converter_type;	
 	const converter_type* converter = new converter_type;
 	string dicPath = "D:\\Dictionary.txt";
-	cout<<"Please check dictionary path: "<<dicPath<<endl;  system("pause");
+	cout<<"Please check dictionary path: "<<dicPath<<endl;  
+	system("pause");
 	wifstream stream(dicPath);
 	stream.imbue(locale(locale::empty(), converter));
 
-
-	vector<wstring> m_vWords;
+	vector<wstring> vWords; // collect words from dictionary
 	ifstream inFile(dicPath);    
 	int countline = count(istreambuf_iterator<char>(inFile), istreambuf_iterator<char>(), '\n');
-	m_vWords.resize(countline+1);
+	vWords.resize(countline+1);// resizing to possible space needed
 	
 	wstring line;
-	int count=-1;
+	int count = -1;
 	while (getline(stream, line))
 	{
 		if(line.length()<1)
@@ -333,89 +333,90 @@ int _tmain(int argc, _TCHAR* argv[])
 		count++;
 		for(int i=0;i<line.length();i++) 
 			line[i]= towlower(line[i]);
-		m_vWords[count]=line;
+		vWords[count]=line; // collect words from dictionary
 	}
 	
 	compareStringLen c;
-	sort(m_vWords.begin(), m_vWords.end(), c);
+	sort(vWords.begin(), vWords.end(), c);
 
-	for(int i=m_vWords.size()-1;i>=0;i--)
+	for(int i=vWords.size()-1;i>=0;i--) // resizing to exact space
 	{
-		if(m_vWords[i].length()!=0)
+		if(vWords[i].length()!=0)
 		{
-			m_vWords.resize(i+1);
+			vWords.resize(i+1);
 			break;
 		}
 	}
 	
-	int minLen =m_vWords.back().length();
-	int maxLen=m_vWords.front().length();
+	int minLen = vWords.back().length();  //min len word in dictionary
+	int maxLen = vWords.front().length(); //max len word in dictionary
 
 	
-	for(int k=1;k<=maxLen;k++) 
+	//insert every words from dictionay to double-array trie
+	for(int k=1; k<=maxLen; k++) 
 	{
-		cout<<"Reading dictionary file, remaining: "<<m_vWords.size()<<endl;
+		cout<<"Reading dictionary file, remaining: "<<vWords.size()<<endl;
 
-		vector<node> m_vWords_Inserting;
+		vector<node> vWords_Inserting;
 
-		for(int i=m_vWords.size()-1;i>=0;i--)
+		for(int i=vWords.size()-1;i>=0;i--)
 		{
 			node *record = new node;
-			if(m_vWords[i].length()==k)
+			if(vWords[i].length()==k)
 			{
-				record->WS=m_vWords[i];     
+				record->WS=vWords[i];     
 
 				record->IsEndChar=true;   
 
-				m_vWords_Inserting.push_back(*record);
-				m_vWords.pop_back();
+				vWords_Inserting.push_back(*record);
+				vWords.pop_back();
 			}
 			else
 			{
-				record->WS=m_vWords[i].substr(0,k);   
+				record->WS=vWords[i].substr(0,k);   
 
 				record->IsEndChar=false;   
 
-				m_vWords_Inserting.push_back(*record);
+				vWords_Inserting.push_back(*record);
 			}
 			delete 	record;
 		}
 
 		compareNodeString c;
-		sort(m_vWords_Inserting.begin(), m_vWords_Inserting.end(),c);
+		sort(vWords_Inserting.begin(), vWords_Inserting.end(),c);
 
-		for(int i=m_vWords_Inserting.size()-1;i>=1;i--)
+		for(int i=vWords_Inserting.size()-1;i>=1;i--)
 		{
-			if(m_vWords_Inserting[i].WS==m_vWords_Inserting[i-1].WS)
+			if(vWords_Inserting[i].WS==vWords_Inserting[i-1].WS)
 			{
-				if( m_vWords_Inserting[i].IsEndChar!=m_vWords_Inserting[i-1].IsEndChar)
+				if( vWords_Inserting[i].IsEndChar!=vWords_Inserting[i-1].IsEndChar)
 				{
-						m_vWords_Inserting[i].WS=L"";
-						m_vWords_Inserting[i-1].IsEndChar=true;
+						vWords_Inserting[i].WS=L"";
+						vWords_Inserting[i-1].IsEndChar=true;
 				}
 				else
 				{
-						m_vWords_Inserting[i].WS=L"";
+						vWords_Inserting[i].WS=L"";
 				}
 			}
 		}
 
 		compareNodeString c1;
-		sort(m_vWords_Inserting.begin(), m_vWords_Inserting.end(),c1);
+		sort(vWords_Inserting.begin(), vWords_Inserting.end(),c1);
 		
-		for(int i=m_vWords_Inserting.size()-1;i>=1;i--)
+		for(int i=vWords_Inserting.size()-1;i>=1;i--)
 		{
-			if(m_vWords_Inserting[i].WS!=L"")
+			if(vWords_Inserting[i].WS!=L"")
 			{
-				m_vWords_Inserting.resize(i+1);
+				vWords_Inserting.resize(i+1);
 				break;
 			}
 		}
 
-		while(m_vWords_Inserting.size() != 0)
-			GroupInsert(m_vWords_Inserting);
+		while(vWords_Inserting.size() != 0)
+			GroupInsert(vWords_Inserting);
 		
-		m_vWords_Inserting.clear();
+		vWords_Inserting.clear();
 	}
 
 	wstring newWrod;
@@ -426,20 +427,21 @@ int _tmain(int argc, _TCHAR* argv[])
 		if(newWrod.length()>0) 
 			Insert(newWrod);
 
-
 		wstring seq;
 		cout<<endl<<"請輸入過濾對話"<<endl;
 		getline(wcin, seq);
-		wstring seq_ = seq;
+		wstring seq_ = seq; //seq_ will convert to lower case, seq will replace as output
 
-		
+		//timer start
 		LARGE_INTEGER nFreq,nBeginTime,nEndTime;
 		QueryPerformanceFrequency(&nFreq);
 		QueryPerformanceCounter(&nBeginTime);
 		
+		//covert input to lower case
 		for(int i=0;i<seq_.length();i++) 
 			seq_[i]= towlower(seq_[i]);
 		
+		//extract every whole dialog without any mark from input
 		wregex rgx(L"\\w+");
 		for( wsregex_iterator it(seq_.begin(), seq_.end(), rgx), it_end; it != it_end; ++it )
 		{
@@ -447,6 +449,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			if(line.length()<minLen)
 				continue;
 
+			//extrct every possible word from dialog
 			for(int wordLen=minLen;wordLen<=maxLen;wordLen++)
 			{
 				if(line.length()<wordLen)
@@ -455,8 +458,10 @@ int _tmain(int argc, _TCHAR* argv[])
 				for(int i=0;i<line.length()+1-wordLen;i++)
 				{
 					wstring line0=line.substr(i,wordLen);
+
 					if(line0.find(L"*") != string::npos)
 						continue;
+
 					if(Search(line0,true)>0)
 					{
 						wstring ws(line0.length(), L'*');
@@ -467,9 +472,11 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 		}
 
+		//output
 		cout<<endl<<"過濾後:"<<endl;
 		wcout<<seq<<endl;
-
+		
+		//timer end
 		QueryPerformanceCounter(&nEndTime);
 		double timeT = (double)(nEndTime.QuadPart-nBeginTime.QuadPart)/(double)nFreq.QuadPart;
 		printf("\n耗時:%f\n",timeT);
