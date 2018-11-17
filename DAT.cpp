@@ -402,7 +402,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		//resizing to exact space
 		compareNodeString c1;
 		sort(vNodes.begin(), vNodes.end(),c1);
-		for(int i=vNodes.size()-1;i>=1;i--)
+		for(int i=vNodes.size()-1;i>=0;i--)
 		{
 			if(vNodes[i].WS!=L"")
 			{
