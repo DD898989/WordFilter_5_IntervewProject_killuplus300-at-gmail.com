@@ -21,7 +21,7 @@ M: Filter Cases<br/>
 ## Analysis ## 
 ![](https://i.imgur.com/erzR1Ie.png) <br/>
 ### (Compare with Binary-Trie in previous project) ###
-![](https://i.imgur.com/SDS2pz1.png) <br/>
+![](https://i.imgur.com/fEJyoFk.png) <br/>
 x: search levels<br/>
 y: average finished time(sec)<br/>
 <br/>
