@@ -20,24 +20,11 @@ M: Filter Cases<br/>
 
 ## Analysis ##
 
-![](https://i.imgur.com/pW9tTEc.png) <br/>
-x: filter cases<br/>
-y: memory used(kb)<br/>
-dialog length(char):500<br/>
+![](https://i.imgur.com/erzR1Ie.png) <br/>
+![](https://i.imgur.com/05tHgse.png) <br/>
+x: search levels<br/>
+y: average finished time(sec)<br/>
 <br/>
-The result not seem to be a clear direct proportion because there is a special array-resizing funcion were used, where the sudden rise between two points means the array was resized to double<br/>
-<br/>
-![](https://i.imgur.com/7guqIaN.png) <br/>
+![](https://i.imgur.com/SDS2pz1.png) <br/>
 x: filter cases<br/>
 y: average finished time(sec)<br/>
-dialog length(char):500<br/>
-<br/>
-As expect, filter cases are not relative to time<br/>
-<br/>
-![](https://i.imgur.com/gNDcBKR.png) <br/>
-x: dialog length(char)<br/>
-y: average finished time(sec)<br/>
-filter cases:216000<br/>
-<br/>
-As expect, dialog length are in direct proportion to time<br/>
-<br/>
