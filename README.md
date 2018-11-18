@@ -28,4 +28,4 @@ y: average finished time(sec)<br/>
 <br/>
 ![](https://i.imgur.com/SDS2pz1.png) <br/>
 x: filter cases<br/>
-y: average finished time(sec)<br/>
+y: memory used(kb)<br/>
