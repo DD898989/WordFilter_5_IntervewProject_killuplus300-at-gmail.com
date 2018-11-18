@@ -14,7 +14,7 @@
 | DAT           | `O(N)`          |`O(M)`         |
 
 <br/>
-N: Input Length<br/>
+N: Input Length(Search Level)<br/>
 M: Filter Cases<br/>
 <br/>
 
