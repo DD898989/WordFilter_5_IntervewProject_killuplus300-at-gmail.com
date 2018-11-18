@@ -33,7 +33,7 @@ y: memory used(kb)<br/>
 <br/>
 
 ## Conclusion ##
-Binary Trie and DAT have same time complexity of `O(search level)` and space complexity`O(filter cases)`, but DAT is much more efficient in memory usage
+Binary Trie and DAT have same time complexity of `O(search level)` and space complexity `O(filter cases)`, but DAT is much more efficient in memory usage
 <br/>
 <br/>
 <br/>
