@@ -18,7 +18,8 @@ N: Input Length(Search Level)<br/>
 M: Filter Cases<br/>
 <br/>
 
-## Analysis ## ### Compare with Binary-Trie in previous project ###
+## Analysis ## 
+### (Compare with Binary-Trie in previous project) ###
 
 ![](https://i.imgur.com/erzR1Ie.png) <br/>
 ![](https://i.imgur.com/05tHgse.png) <br/>
