@@ -22,10 +22,10 @@ M: Filter Cases<br/>
 
 ![](https://i.imgur.com/erzR1Ie.png) <br/>
 ![](https://i.imgur.com/05tHgse.png) <br/>
-x: search levels<br/>
-y: average finished time(sec)<br/>
+x: filter cases<br/>
+y: memory used(kb)<br/>
 <br/>
 <br/>
 ![](https://i.imgur.com/SDS2pz1.png) <br/>
-x: filter cases<br/>
-y: memory used(kb)<br/>
+x: search levels<br/>
+y: average finished time(sec)<br/>
