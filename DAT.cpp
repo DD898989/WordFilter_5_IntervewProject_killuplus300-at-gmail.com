@@ -7,50 +7,29 @@
 #include <codecvt>
 #include <fstream>
 #include <regex>
-#include <stdlib.h>
 using namespace std;
 //-----------------------------------------
 typedef struct DAT
 {
-	int base;
-	int check;
+	int base; //base<0: whole word,might also be mid node    
+	          //base>0: mid node   
+	          //base=0: empty node
+	int check;//check=-1: root、len=0      
+	          //check= 0: root-child、len=1       
+	          //check> 0: can't define
 	wstring content;
 };
 //-----------------------------------------
 typedef struct Node
 {
-	wstring WS;
-	bool bIsEndChar;
+	wstring content;
+	bool bIsWholeWord;
 };
 //-----------------------------------------
 vector<DAT>  m_dat;
-vector<Node> m_ReInsertString;
+vector<Node> m_ReInsert;
 //-----------------------------------------
-string wstring_to_utf8 (const wstring& str)
-{
-	wstring_convert<codecvt_utf8<wchar_t>> myconv;
-	return myconv.to_bytes(str);
-}
-//-----------------------------------------
-void print()  //for debug
-{
-	ofstream  myfile;
-	myfile.open("D:\\MyLog.txt", fstream::app);
-	for(int i=1;i<m_dat.size();i++)
-	{
-		if(m_dat[i].content.length()>0)
-		{
-			myfile<<i<<"\t";
-			myfile<<m_dat[i].base<<"\t";
-			myfile<<m_dat[i].check<<"\t";
-			myfile<<wstring_to_utf8(m_dat[i].content)<<"\t";
-			myfile<<endl;
-		}
-	}
-	myfile.close();
-}
-//-----------------------------------------
-int tableSizeFor(int cap) 
+int TableSizeFor(int cap) 
 {
 	int n = cap - 1;
 	n |= n >> 1;
@@ -59,47 +38,48 @@ int tableSizeFor(int cap)
 	return (n < 0) ? 1 :  n + 1;
 }
 //-----------------------------------------
-void recursive_reset(int id)
+void RecursiveMove(int id, wstring exclude)
 {
 	for(int i=0;i<m_dat.size();i++)
 	{
-		if(m_dat[i].check==id)
+		if(m_dat[i].check==id && m_dat[i].base!=0)
 		{
-			Node *node = new Node;
-			node->WS=m_dat[i].content;
+			if(m_dat[i].content != exclude)
+			{
+				Node *node = new Node;
 
-			if(m_dat[i].base<0)
-				node->bIsEndChar=true;
-			else
-				node->bIsEndChar=false;
+				node->content=m_dat[i].content;
+				node->bIsWholeWord=(m_dat[i].base<0);
 
-			m_ReInsertString.push_back(*node);
-			delete node;
+				m_ReInsert.push_back(*node);
+
+				delete node;
+			}
 			m_dat[i].check=0;
 			m_dat[i].base=0;
 			m_dat[i].content=L"";
-			recursive_reset(i); //recursive to move all the relative node from theirs target ids
+			RecursiveMove(i,exclude); //recursive to move all the relative node from theirs target ids
 		}
 	}
 }
 //-----------------------------------------
-struct compareNodeString
+struct CompareNodeReverse
 {
 	bool operator()(const Node& first, const Node& second) 
 	{
-		return first.WS > second.WS; 
+		return first.content > second.content; 
 	}
 };
 //-----------------------------------------
-struct compareNodeStringLen
+struct CompareNodeLen
 {
 	bool operator()(const Node& first, const Node& second) 
 	{
-		return first.WS.length() < second.WS.length(); 
+		return first.content.length() < second.content.length(); 
 	}
 };
 //-----------------------------------------
-struct compareStringLen
+struct CompareStringLenReverse
 {
 	bool operator()(const wstring& first, const wstring& second) 
 	{
@@ -107,44 +87,44 @@ struct compareStringLen
 	}
 };
 //-----------------------------------------
-void Expand(vector<DAT> &dat_, int base)
+void ResizingDAT(int reach)
 {
-	int ori_datsize = dat_.size();
-	if(base>ori_datsize-1)
+	int ori_size = m_dat.size();
+	if(reach>ori_size-1)
 	{
-		cout<<"resizing array..."<<endl;
-		dat_.resize(tableSizeFor(base+1));
-		for(int m=ori_datsize;m<m_dat.size();m++)
+		int new_size = TableSizeFor(reach+1);
+
+		cout<<"resizing array..."<<ori_size<<" to "<<new_size<<endl;
+		m_dat.resize(new_size);
+		for(int m=ori_size;m<m_dat.size();m++)
 		{
-			dat_[m].base=0;
-			dat_[m].check=0;
-			dat_[m].content=L"";
+			m_dat[m].base=0;
+			m_dat[m].check=0;
 		}
+		m_dat[0].check=-1;
 	}
 }
 //-----------------------------------------
-int Search(wstring str, bool bExactWord) //return room id or -1
+int Search(wstring str, bool bFindWholeWord) //return id or -1
 {
 	int base=str[0]+abs(m_dat[0].base);
+	int base_pre=0;
+
 	for(int j=0;j<str.length();j++)
 	{
-		Expand(m_dat,base);
-		if(str.substr(0,j+1) ==m_dat[base].content)
+		if(base>m_dat.size()-1)
+			return -1;
+
+		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
 		{
 			if(j==str.length()-1)
 			{
-				if(m_dat[base].base<0)
-				{
+				if(m_dat[base].base<0 || !bFindWholeWord)
 					return base;
-				}
 				else
-				{
-					if(bExactWord)
-						return -1;
-					else
-						return base;
-				}
+					return -1;
 			}
+			base_pre = base;
 			base=abs(m_dat[base].base)+str[j+1];
 		}
 		else
@@ -154,64 +134,61 @@ int Search(wstring str, bool bExactWord) //return room id or -1
 	}
 }
 //-----------------------------------------
-int Get_LandLordID_From_Tenant(wstring ws)
+int GetTargetID(wstring ws)
 {
 	if(ws.length()==1)
 		return 0;
 
-	wstring LandLord=ws.substr(0,ws.size()-1);
+	ws.pop_back();
 
-	return Search(LandLord,false);
+	return Search(ws,false);
 }
 //-----------------------------------------
- void InsertBase(vector<Node> &vNodes)
+ void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same target: only differ in last char
 {
-	int nLandLordID = Get_LandLordID_From_Tenant(vNodes[0].WS);
+	int nTarget = GetTargetID(vNodes[0].content);
 	
 	int *ids = new int[vNodes.size()]; 
 
 	for(int i=0;i<vNodes.size();i++)
-		ids[i] = vNodes[i].WS[vNodes[i].WS.size()-1];
+		ids[i] = vNodes[i].content.back();
 
-	for(int k=1;k<m_dat.size();k+=rand()/100+1)
+	for(int k=1;k<m_dat.size();k+=rand()/100+1)//if k=1 not fit, then random move forward to fit
 	{
 		int i=0;
-		for(;i<vNodes.size();i++) // for loop to find suitable empty nodes for all vNodes
+		for(;i<vNodes.size();i++) //try to fit vNodes one by one
 		{
-			Expand(m_dat,k+ids[i]);
+			ResizingDAT(k+ids[i]);
 			if(m_dat[k+ids[i]].content.length()!=0)
-				break;        //continue loop
+				break;        //not fit, continue loop
 		}
-		if(i!=vNodes.size())  //continue loop
+		if(i!=vNodes.size())  //not fit, continue loop
 			continue;
 		
-		if(m_dat[nLandLordID].base<0)   //if is end char
-			m_dat[nLandLordID].base=-k;
+		//fit ok, base is k
+		if(m_dat[nTarget].base<0)   //if is end char
+			m_dat[nTarget].base=-k;
 		else
-			m_dat[nLandLordID].base=k;
+			m_dat[nTarget].base=k;
 
 		for(int n=0;n<vNodes.size();n++) //inserting
 		{
-			m_dat[k+ids[n]].check=nLandLordID;
-			m_dat[k+ids[n]].content=vNodes[n].WS;
+			m_dat[k+ids[n]].check=nTarget;
+			m_dat[k+ids[n]].content=vNodes[n].content;
 
-			if(vNodes[n].bIsEndChar)
+			if(vNodes[n].bIsWholeWord)
 				m_dat[k+ids[n]].base=-(k+ids[n]);
 			else
-				m_dat[k+ids[n]].base=0;
-
+				m_dat[k+ids[n]].base=k+ids[n];
 		}
 		break;
 	}
 	delete ids;
 }
 //-----------------------------------------
-void Insert(wstring str)// for single insert
+void InsertSingle(wstring str)// for single insert
 {
-	if(str.length()<=1)// takes too long to rebuild the whole DAT, so reject input length 1 
-		return;
-
-	if(Search(str,true)!=-1)// already have
+	if(Search(str,true)!=-1) //already exist
 		return;
 
 	int base=str[0]+abs(m_dat[0].base);
@@ -219,124 +196,120 @@ void Insert(wstring str)// for single insert
 
 	for(int i=0;i<str.length();i++) //search down the trie
 	{
-		Expand(m_dat,base);
-
-		if(i!=str.length()-1 && base>0 && str.substr(0,i+1) ==m_dat[base].content)
+		ResizingDAT(base);
+		
+		if(Search(str.substr(0,i+1),false)==-1  ||  str.length()==i+1 )
 		{
-		}
-		else
-		{
-			m_ReInsertString.clear();   
-			recursive_reset(base_pre); //move all the nodes have same target id and those nodes targets them as well, all move to m_ReInsertString
+			m_ReInsert.clear();   
+			RecursiveMove(GetTargetID(str.substr(0,i+1)),str); //move all the nodes have same target id and those nodes targets them as well, all move to m_ReInsert
 			wstring wsTemp = str; 
 
 			for(int m=i;m<str.length();m++)
 			{
 				Node *node = new Node;
 
-				node->WS=wsTemp;
+				node->content=wsTemp;
 
 				if(m==i)
-					node->bIsEndChar=true;
+					node->bIsWholeWord=true;
 				else
-					node->bIsEndChar=false;
+					node->bIsWholeWord=false;
 
-				m_ReInsertString.push_back(*node); //insert all relative node from insert string,  ex: insert "hello", "he" already exist, so push_back "hel"(mid)、"hell"(mid)、"hello"(end)
+				m_ReInsert.push_back(*node); //insert all relative node from input string,  ex: insert "hello", "he" already exist, so push_back "hel"(mid)、"hell"(mid)、"hello"(end)
 				wsTemp=wsTemp.substr(0,wsTemp.size()-1);
 
 				delete node;
 			}
 			break;
 		}
-		base_pre = base;
-		base=m_dat[base].base+str[i+1];
 	}
 
-	compareNodeStringLen c1;
-	sort(m_ReInsertString.begin(), m_ReInsertString.end(),c1);
-	int m_nMinLenForReInsert=m_ReInsertString.front().WS.length();
-	int m_nMaxLenForReInsert=m_ReInsertString.back().WS.length();
+	sort(m_ReInsert.begin(), m_ReInsert.end(),CompareNodeLen());
+	int nMinLen=m_ReInsert.front().content.length();
+	int nMaxLen=m_ReInsert.back().content.length();
 
-	compareNodeString c2;
-	sort(m_ReInsertString.begin(), m_ReInsertString.end(),c2);
-
-	vector<Node> m_ReInsertStringForEachLen;
-	for(int i=m_nMinLenForReInsert;i<m_nMaxLenForReInsert+1;i++)
+	sort(m_ReInsert.begin(), m_ReInsert.end(),CompareNodeReverse());
+	vector<Node> m_ReInsertEachLen;
+	for(int len=nMinLen;len<=nMaxLen;len++)
 	{
-		m_ReInsertStringForEachLen.clear();
+		m_ReInsertEachLen.clear();
 
-		for(int j=0;j<m_ReInsertString.size();j++)
+		for(int j=0;j<m_ReInsert.size();j++)
 		{
-			if(m_ReInsertString[j].WS.length()==i)
+			if(m_ReInsert[j].content.length()==len)
 			{
-				m_ReInsertStringForEachLen.push_back(m_ReInsertString[j]);
-				m_ReInsertString[j].WS=L"";
+				m_ReInsertEachLen.push_back(m_ReInsert[j]);
+				m_ReInsert[j].content=L"";
 			}
-			else if(m_ReInsertString[j].WS==L"" && m_ReInsertStringForEachLen.size()>0)
+			else if(m_ReInsert[j].content==L"" && m_ReInsertEachLen.size()>0)
 			{
-				InsertBase(m_ReInsertStringForEachLen); //group insert all the nodes that have same target id
-				m_ReInsertStringForEachLen.clear();
+				InsertBase(m_ReInsertEachLen); //group insert all the nodes that have same target id
+				m_ReInsertEachLen.clear();
 			}
 		}
 
-		if(m_ReInsertStringForEachLen.size()>0)
+		if(m_ReInsertEachLen.size()>0)
 		{
-			InsertBase(m_ReInsertStringForEachLen);     //group insert all the nodes that have same target id
-			m_ReInsertStringForEachLen.clear();
+			InsertBase(m_ReInsertEachLen);     //group insert all the nodes that have same target id
+			m_ReInsertEachLen.clear();
 		}
 	}
 	
-	m_ReInsertStringForEachLen.clear();
+	m_ReInsertEachLen.clear();
 }
 //-----------------------------------------
-void GroupInsert(vector<Node> &vNodes)//for group insert from dictionary
+void InsertGroup(vector<Node> &vNodes,int len)//for group insert from dictionary, vNodes have same length
 {
-	wstring temp = vNodes.back().WS.substr(0,vNodes.back().WS.length()-1);
+	wstring sTarget = vNodes.back().content.substr(0,len-1);
 	vector<Node> vNodesInserting;
-
-	while(vNodes.size()>0 && vNodes.back().WS.substr(0,vNodes.back().WS.length()-1) == temp) //filter out all the nodes the have the same target id
+	vNodes.back().content.substr(0,len-1);
+	while(vNodes.size()>0 && vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same target id
 	{
 		vNodesInserting.push_back(vNodes.back());
 		vNodes.pop_back();
 	}
-	InsertBase(vNodesInserting);
-	vNodesInserting.clear();
+	InsertBase(vNodesInserting);//insert all nodes that have the same target id
 }
 //-----------------------------------------
-int _tmain(int argc, _TCHAR* argv[])
+int main()
 {
-	locale::global(locale(""));
-
-	Expand(m_dat,65530);
-
-	typedef codecvt_utf8<wchar_t> converter_type;	
-	const converter_type* converter = new converter_type;
 	string dicPath = "D:\\Dictionary.txt";
 	cout<<"Please check dictionary path: "<<dicPath<<endl;  
 	system("pause");
+	
+	//define
+	locale::global(locale(""));	
 	wifstream stream(dicPath);
-	stream.imbue(locale(locale::empty(), converter));
-
+	stream.imbue(locale(locale::empty(), new codecvt_utf8<wchar_t>));
 	vector<wstring> vWords; // collect words from dictionary
-	ifstream inFile(dicPath);    
-	int countline = count(istreambuf_iterator<char>(inFile), istreambuf_iterator<char>(), '\n');
+	int countline = count(istreambuf_iterator<char>(ifstream(dicPath)), istreambuf_iterator<char>(), '\n');
+	vector<wstring>::iterator itws;
+	vector<Node>::iterator itnd;
+
+	ResizingDAT(65530);//init to unicode size
 	vWords.resize(countline+1);// resizing to possible space needed
 	
+	int minLen = INT_MAX;
+	int maxLen = INT_MIN;
+	itws = vWords.begin();
 	wstring line;
-	int count = -1;
 	while (getline(stream, line))
 	{
-		if(line.length()<1)
+		int len = line.length();
+
+		if(len==0)
 			continue;
 
-		count++;
-		for(int i=0;i<line.length();i++) 
-			line[i]= towlower(line[i]);
-		vWords[count]=line; // collect words from dictionary
+		if(len<minLen)
+			minLen = len;
+		
+		if(len>maxLen)
+			maxLen = len;
+
+		transform(line.begin(), line.end(), line.begin(), ::towlower);
+		*itws++=line; // collect words from dictionary
 	}
-	
-	compareStringLen c;
-	sort(vWords.begin(), vWords.end(), c);//sorting as reverse length order(inserting order: the shorter the prior, so pop-back the shortest for vector efficiency)
+
 	for(int i=vWords.size()-1;i>=0;i--) // resizing to exact space
 	{
 		if(vWords[i].length()!=0)
@@ -345,66 +318,50 @@ int _tmain(int argc, _TCHAR* argv[])
 			break;
 		}
 	}
-	
-	int minLen = vWords.back().length();  //min len word in dictionary
-	int maxLen = vWords.front().length(); //max len word in dictionary
+
+	sort(vWords.begin(), vWords.end(),CompareStringLenReverse());//sorting as reverse length order(inserting order: the shorter the prior, so pop-back the shortest for vector efficiency)
 
 	
 	//group insert every words from dictionay to double-array trie (faster then insert one-by-one)
-	for(int k=1; k<=maxLen; k++) //from 1 not minLen, middle node start from length 1, a completely word strat from minLen
+	for(int k=1; k<=maxLen; k++) //start from 1 not minLen, because middle node always start from length 1
 	{
-		cout<<"Reading dictionary file, remaining: "<<vWords.size()<<endl;
+		cout<<"constructing trie, remaining words: "<<vWords.size()<<endl;
 
 		vector<Node> vNodes;
 
-		for(int i=vWords.size()-1;i>=0;i--)
+		int count = vWords.size()-1;
+		for(int i=count;i>=0;i--)
 		{
-			Node *node = new Node; // "Node.bIsEndChar" indicate whether string is a completely word or a middle node
-			if(vWords[i].length()==k)
-			{
-				node->WS=vWords[i];     
+			bool bIsWholeWord = (vWords[i].length()==k);
 
-				node->bIsEndChar=true;   
+			Node node = {
+				vWords[i].substr(0,k),
+				bIsWholeWord,    // "Node.bIsWholeWord" indicate whether string is a completely word or a middle node
+			};
 
-				vNodes.push_back(*node);
+			vNodes.push_back(node);
+
+			if(bIsWholeWord)
 				vWords.pop_back();
-			}
-			else
-			{
-				node->WS=vWords[i].substr(0,k);   
-
-				node->bIsEndChar=false;   
-
-				vNodes.push_back(*node);
-			}
-			delete 	node;
 		}
 
-		//remove same strings, keep "bIsEndChar" as true one if has
-		compareNodeString c;
-		sort(vNodes.begin(), vNodes.end(),c);
-		for(int i=vNodes.size()-1;i>=1;i--)
+		
+		//remove same strings, keep "bIsWholeWord" as true if one has
+		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
+		for(itnd=vNodes.begin() ; itnd!=vNodes.end()-1 ; itnd++)
 		{
-			if(vNodes[i].WS==vNodes[i-1].WS)
+			if((itnd+1)->content==itnd->content)
 			{
-				if( vNodes[i].bIsEndChar!=vNodes[i-1].bIsEndChar)
-				{
-						vNodes[i].WS=L"";
-						vNodes[i-1].bIsEndChar=true;
-				}
-				else
-				{
-						vNodes[i].WS=L"";
-				}
+				(itnd)->content=L"";
+				(itnd+1)->bIsWholeWord=((itnd+1)->bIsWholeWord!=itnd->bIsWholeWord);
 			}
 		}
 
 		//resizing to exact space
-		compareNodeString c1;
-		sort(vNodes.begin(), vNodes.end(),c1);
+		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
 		for(int i=vNodes.size()-1;i>=0;i--)
 		{
-			if(vNodes[i].WS!=L"")
+			if(vNodes[i].content!=L"")
 			{
 				vNodes.resize(i+1);
 				break;
@@ -412,18 +369,29 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 
 		while(vNodes.size() != 0) //group insert all the nodes that have same target id
-			GroupInsert(vNodes);
-		
+			InsertGroup(vNodes,k);
+
 		vNodes.clear();
 	}
 
-	wstring newWrod;
+	wstring newWord;
 	while(true)
 	{
 		cout<<endl<<"請輸入新增字囊"<<endl;
-		getline(wcin, newWrod);
-		if(newWrod.length()>0) 
-			Insert(newWrod);
+		getline(wcin, newWord);
+
+		if(newWord.length()>0) 
+		{
+			transform(newWord.begin(), newWord.end(), newWord.begin(), ::towlower);
+
+			if(newWord.length()<minLen && newWord.length()>0)
+				minLen = newWord.length();
+
+			if(newWord.length()>maxLen)
+				maxLen = newWord.length();
+
+			InsertSingle(newWord);
+		}
 
 		wstring seq;
 		cout<<endl<<"請輸入過濾對話"<<endl;
@@ -436,35 +404,28 @@ int _tmain(int argc, _TCHAR* argv[])
 		QueryPerformanceCounter(&nBeginTime);
 		
 		//convert input to lower case
-		for(int i=0;i<seq_.length();i++) 
-			seq_[i]= towlower(seq_[i]);
+		transform(seq_.begin(), seq_.end(), seq_.begin(), ::towlower);
 		
 		//extract every whole dialog without any mark from input
 		wregex rgx(L"\\w+");
-		for( wsregex_iterator it(seq_.begin(), seq_.end(), rgx), it_end; it != it_end; ++it )
+		for( wsregex_iterator itnd(seq_.begin(), seq_.end(), rgx), it_end; itnd != it_end; ++itnd )
 		{
-			wstring line = (*it)[0];
-			if(line.length()<minLen)
-				continue;
+			wstring line = (*itnd)[0];
 
 			//extrct every possible word from dialog
 			for(int wordLen=minLen;wordLen<=maxLen;wordLen++)
 			{
 				if(line.length()<wordLen)
-					break;
+					continue;
 
 				for(int i=0;i<line.length()+1-wordLen;i++)
 				{
-					wstring line0=line.substr(i,wordLen);
+					wstring word=line.substr(i,wordLen);
 
-					if(line0.find(L"*") != string::npos)
-						continue;
-
-					if(Search(line0,true)>0)
+					if(Search(word,true)>0)
 					{
-						wstring ws(line0.length(), L'*');
-						line.replace(i, wordLen, ws);
-						seq.replace(it->position()+i, wordLen, ws);
+						wstring ws(word.length(), L'*');
+						seq.replace(itnd->position()+i, wordLen, ws);
 					}
 				}
 			}
@@ -483,4 +444,3 @@ int _tmain(int argc, _TCHAR* argv[])
 	system("pause");
 	return 0;
 }
-//-----------------------------------------
