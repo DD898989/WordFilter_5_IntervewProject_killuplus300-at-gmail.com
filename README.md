@@ -25,6 +25,7 @@ M: Filter Cases<br/>
 x: search levels<br/>
 y: average finished time(sec)<br/>
 <br/>
+<br/>
 ![](https://i.imgur.com/SDS2pz1.png) <br/>
 x: filter cases<br/>
 y: average finished time(sec)<br/>
