@@ -21,14 +21,14 @@ M: Filter Cases<br/>
 ## Analysis ## 
 ![](https://i.imgur.com/erzR1Ie.png) <br/>
 ### (Compare with Binary-Trie in previous project) ###
-![](https://i.imgur.com/05tHgse.png) <br/>
-x: filter cases<br/>
-y: memory used(kb)<br/>
-<br/>
-<br/>
 ![](https://i.imgur.com/SDS2pz1.png) <br/>
 x: search levels<br/>
 y: average finished time(sec)<br/>
+<br/>
+<br/>
+![](https://i.imgur.com/05tHgse.png) <br/>
+x: filter cases<br/>
+y: memory used(kb)<br/>
 <br/>
 <br/>
 
