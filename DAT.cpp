@@ -12,6 +12,8 @@ using namespace std;
 //-----------------------------------------
 typedef struct DAT
 {
+	//int id  //equal to array index
+
 	int base; //base<0: whole word,might also be mid node    
 	          //base>0: mid node   
 	          //base=0: empty node
@@ -29,7 +31,7 @@ typedef struct Node
 //-----------------------------------------
 vector<DAT>  m_dat;
 vector<Node> m_ReInsert;
-multimap <int, int> m_RecordTarget;
+multimap <int, int> m_RecordCheck;
 //-----------------------------------------
 int TableSizeFor(int cap) 
 {
@@ -43,11 +45,10 @@ int TableSizeFor(int cap)
 void RecursiveMove(int id, wstring exclude)
 {
 	multimap<int, int>::iterator iter;
-
 	int target;
-	iter = m_RecordTarget.find(id);
 
-	while(iter != m_RecordTarget.end())//instead of loop "m_dat" to find which "i" match "m_dat[i].check = id", use mapping to do quick search
+	iter = m_RecordCheck.find(id);
+	while(iter != m_RecordCheck.end())//instead of loop "m_dat" to find which "i" match "m_dat[i].check = id", use mapping to do quick search
 	{
 		target = iter->second;
 		if(m_dat[target].base!=0)
@@ -66,11 +67,11 @@ void RecursiveMove(int id, wstring exclude)
 			m_dat[target].check=0;
 			m_dat[target].base=0;
 			m_dat[target].content=L"";
-			RecursiveMove(target,exclude); //recursive to move all the relative node from theirs target ids
+			RecursiveMove(target,exclude); //recursive to move all the relative node from their IDs
 
-			m_RecordTarget.erase(iter);
+			m_RecordCheck.erase(iter);
 		}
-		iter = m_RecordTarget.find(id);
+		iter = m_RecordCheck.find(id);
 	}
 }
 //-----------------------------------------
@@ -186,7 +187,7 @@ int GetTargetID(wstring ws)
 		{
 			int id = k+ids[n];
 
-			m_RecordTarget.insert(pair<int, int>(nTarget,id));
+			m_RecordCheck.insert(pair<int, int>(nTarget,id));
 
 			m_dat[id].check=nTarget;
 			m_dat[id].content=vNodes[n].content;
@@ -254,14 +255,14 @@ void InsertSingle(wstring str)// for single insert
 			}
 			else if(m_ReInsert[j].content==L"" && m_ReInsertEachLen.size()>0)
 			{
-				InsertBase(m_ReInsertEachLen); //group insert all the nodes that have same target id
+				InsertBase(m_ReInsertEachLen); //group insert all the nodes that have same "check"
 				m_ReInsertEachLen.clear();
 			}
 		}
 
 		if(m_ReInsertEachLen.size()>0)
 		{
-			InsertBase(m_ReInsertEachLen);     //group insert all the nodes that have same target id
+			InsertBase(m_ReInsertEachLen);     //group insert all the nodes that have same "check"
 			m_ReInsertEachLen.clear();
 		}
 	}
