@@ -217,7 +217,7 @@ void InsertSingle(wstring str)// for single insert
 		if(Search(str.substr(0,i+1),false)==-1  ||  str.length()==i+1 )
 		{
 			m_ReInsert.clear();   
-			RecursiveMove(GetTargetID(str.substr(0,i+1)),str); //move all the nodes have same target id and those nodes targets them as well, all move to m_ReInsert
+			RecursiveMove(GetTargetID(str.substr(0,i+1)),str); //move all the nodes have same "check" and those nodes' "check" are theirs ID as well, all to m_ReInsert
 			wstring wsTemp = str; 
 
 			for(int m=i;m<str.length();m++)
@@ -275,12 +275,12 @@ void InsertGroup(vector<Node> &vNodes,int len)//for group insert from dictionary
 	wstring sTarget = vNodes.back().content.substr(0,len-1);
 	vector<Node> vNodesInserting;
 	vNodes.back().content.substr(0,len-1);
-	while(vNodes.size()>0 && vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same target id
+	while(vNodes.size()>0 && vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same "check"
 	{
 		vNodesInserting.push_back(vNodes.back());
 		vNodes.pop_back();
 	}
-	InsertBase(vNodesInserting);//insert all nodes that have the same target id
+	InsertBase(vNodesInserting);//insert all nodes that have the same "check"
 }
 //-----------------------------------------
 int main()
