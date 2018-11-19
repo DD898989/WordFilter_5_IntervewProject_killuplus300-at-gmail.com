@@ -474,35 +474,30 @@ int main()
 		QueryPerformanceFrequency(&nFreq);
 		QueryPerformanceCounter(&nBeginTime);
 
-		if(input.length()>0)
+		int len = inputL.length();
+		int pos = 0;
+		if(len>0)
 		{
 			inputL = input;
 
 			//convert input to lower case
 			transform(inputL.begin(), inputL.end(), inputL.begin(), ::towlower);
 			
-			int pos = 0;
-
 			//replace position 0 ~ inputL.length()-maxLen
-			while(pos<=inputL.length()-1 )
+			while(pos<=len-1 )
 			{
-				if(pos+maxLen>inputL.length())
+				if(pos+maxLen>len)
 					break;
-
 				word=inputL.substr(pos,maxLen);
-
 				ReplaceDialog(input,word,pos);
 			}
 
-			
 			//replace position for last maxLen char
-			while(pos<=inputL.length()-1 )
+			while(pos<=len-1 )
 			{
-				if(pos>inputL.length()-1)
+				if(pos>len-1)
 					break;
-
-				word=inputL.substr(pos,inputL.length()-pos);
-
+				word=inputL.substr(pos,len-pos);
 				ReplaceDialog(input,word,pos);
 			}
 		}
