@@ -47,7 +47,7 @@ void RecursiveMove(int id, wstring exclude)
 	int target;
 	iter = m_RecordTarget.find(id);
 
-	while(iter != m_RecordTarget.end())//instead of loop "m_dat[i]" to find which one has "check = id", use mapping to do quick search
+	while(iter != m_RecordTarget.end())//instead of loop "m_dat" to find which "i" match "m_dat[i].check = id", use mapping to do quick search
 	{
 		target = iter->second;
 		if(m_dat[target].base!=0)
