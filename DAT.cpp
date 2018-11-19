@@ -61,7 +61,7 @@ int TableSizeFor(int cap)
 	return (n < 0) ? 1 :  n + 1;
 }
 //-----------------------------------------
-void RecursiveMove(int id, wstring exclude)
+void RecursiveMove(int id, const wstring& exclude)
 {
 	multimap<int, int>::iterator iter;
 	int target;
@@ -136,7 +136,7 @@ void ResizingDAT(int reach)
 	}
 }
 //-----------------------------------------
-void ReplaceDialog(wstring &source, const wstring target,int &startFrom)
+void ReplaceDialog(wstring &source, wstring &target, int &startFrom)
 {
 	int nMatchLen=-1;
 	int base=target[0]+abs(m_dat[0].base);
@@ -175,7 +175,7 @@ void ReplaceDialog(wstring &source, const wstring target,int &startFrom)
 	}
 }
 //-----------------------------------------
-int Search(wstring str, bool bFindNode = false) //return id or -1 
+int Search(const wstring& str, bool bFindNode = false) //return id or -1 
 {
 	int base=str[0]+abs(m_dat[0].base);
 	int base_pre=0;
@@ -205,7 +205,7 @@ int Search(wstring str, bool bFindNode = false) //return id or -1
 	}
 }
 //-----------------------------------------
-int GetTargetID(wstring ws)
+int GetTargetID(const wstring& ws)
 {
 	if(ws.length()==1)
 		return 0;
