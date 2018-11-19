@@ -47,7 +47,7 @@ void RecursiveMove(int id, wstring exclude)
 	int target;
 	iter = m_RecordTarget.find(id);
 
-	while(iter != m_RecordTarget.end())//instead of loop "m_dat[i]" to find which "i" has "m_dat[i].check = id", use mapping to do quick search
+	while(iter != m_RecordTarget.end())//instead of loop "m_dat[i]" to find which one has "check = id", use mapping to do quick search
 	{
 		target = iter->second;
 		if(m_dat[target].base!=0)
@@ -224,11 +224,7 @@ void InsertSingle(wstring str)// for single insert
 				Node *node = new Node;
 
 				node->content=wsTemp;
-
-				if(m==i)
-					node->bIsWholeWord=true;
-				else
-					node->bIsWholeWord=false;
+				node->bIsWholeWord=(m==i);
 
 				m_ReInsert.push_back(*node); //insert all relative node from input string,  ex: insert "hello", "he" already exist, so push_back "hel"(mid)、"hell"(mid)、"hello"(end)
 				wsTemp=wsTemp.substr(0,wsTemp.size()-1);
