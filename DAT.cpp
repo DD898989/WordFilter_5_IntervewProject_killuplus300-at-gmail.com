@@ -18,7 +18,7 @@ typedef struct DAT
 	          //base>0: mid node   
 	          //base=0: empty node
 	int check;//check=-1: root、len=0      
-	          //check= 0: root-child、len=1       
+	          //check= 0: root-child、len=1    or   empty node   
 	          //check> 0: can't define
 	wstring content;
 };
@@ -32,6 +32,26 @@ typedef struct Node
 vector<DAT>  m_dat;
 vector<Node> m_ReInsert;
 multimap <int, int> m_RecordCheck;
+//-----------------------------------------
+void print()                                           //for debug
+{
+	ofstream  myfile;
+	myfile.open("D:\\MyLog.txt", fstream::app);
+	wstring_convert<codecvt_utf8<wchar_t>> myconv;
+	myfile<<"ID\tbase\tcheck\tcontent"<<endl;;
+	for(int i=1;i<m_dat.size();i++)
+	{
+		if(m_dat[i].content.length()>0 || m_dat[i].base!=0 || m_dat[i].check>0)
+		{
+			myfile<<i<<"\t";
+			myfile<<m_dat[i].base<<"\t";
+			myfile<<m_dat[i].check<<"\t";
+			myfile<<myconv.to_bytes(m_dat[i].content)<<"\t";
+			myfile<<endl;
+		}
+	}
+	myfile.close();
+}
 //-----------------------------------------
 int TableSizeFor(int cap) 
 {
@@ -384,6 +404,7 @@ int main()
 
 		vNodes.clear();
 	}
+	//print();
 
 	wstring newWord;
 	wstring input;   //input for filter, will replaced as output
