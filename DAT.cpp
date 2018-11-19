@@ -448,7 +448,6 @@ int main()
 	wstring newWord;
 	wstring input;   //input for filter, will replaced as output
 	wstring inputL;  //lower case of "input"
-	wstring dialog;  //every whole dialog without any mark(, . ? ， 。 ？  ...etc ) from "input"
 	wstring word;	 //every possible filter cases from "line"
 	while(true)
 	{
