@@ -387,11 +387,14 @@ int main()
 	}
 
 	wstring newWord;
+	wstring input;   //input for filter, will replaced as output
+	wstring inputL;  //lower case of "input"
+	wstring dialog;  //every whole dialog without any mark(, . ? ， 。 ？  ...etc ) from "input"
+	wstring word;	 //every possible filter cases from "line"
 	while(true)
 	{
 		cout<<endl<<"請輸入新增字囊"<<endl;
 		getline(wcin, newWord);
-
 		if(newWord.length()>0) 
 		{
 			transform(newWord.begin(), newWord.end(), newWord.begin(), ::towlower);
@@ -405,10 +408,9 @@ int main()
 			InsertSingle(newWord);
 		}
 
-		wstring seq;
 		cout<<endl<<"請輸入過濾對話"<<endl;
-		getline(wcin, seq);
-		wstring seq_ = seq; //seq_ will convert to lower case, seq will replace as output
+		getline(wcin, input);
+		inputL = input;
 
 		//timer start
 		LARGE_INTEGER nFreq,nBeginTime,nEndTime;
@@ -416,36 +418,31 @@ int main()
 		QueryPerformanceCounter(&nBeginTime);
 		
 		//convert input to lower case
-		transform(seq_.begin(), seq_.end(), seq_.begin(), ::towlower);
+		transform(inputL.begin(), inputL.end(), inputL.begin(), ::towlower);
 		
-		//extract every whole dialog without any mark from input
 		wregex rgx(L"\\w+");
-		for( wsregex_iterator itnd(seq_.begin(), seq_.end(), rgx), it_end; itnd != it_end; ++itnd )
+		for( wsregex_iterator itnd(inputL.begin(), inputL.end(), rgx), it_end; itnd != it_end; ++itnd )
 		{
-			wstring line = (*itnd)[0];
+			dialog = (*itnd)[0];
 
-			//extrct every possible word from dialog
-			for(int wordLen=minLen;wordLen<=maxLen;wordLen++)
+			for(int len = minLen ; len <= maxLen ; len++)
 			{
-				if(line.length()<wordLen)
+				if(dialog.length()<len)
 					continue;
 
-				for(int i=0;i<line.length()+1-wordLen;i++)
+				for(int i=0;i<dialog.length()+1-len;i++)
 				{
-					wstring word=line.substr(i,wordLen);
+					word=dialog.substr(i,len);
 
 					if(Search(word,true)>0)
-					{
-						wstring ws(word.length(), L'*');
-						seq.replace(itnd->position()+i, wordLen, ws);
-					}
+						input.replace(itnd->position()+i, len, wstring(word.length(), L'*'));
 				}
 			}
 		}
 
 		//output
 		cout<<endl<<"過濾後:"<<endl;
-		wcout<<seq<<endl;
+		wcout<<input<<endl;
 		
 		//timer end
 		QueryPerformanceCounter(&nEndTime);
