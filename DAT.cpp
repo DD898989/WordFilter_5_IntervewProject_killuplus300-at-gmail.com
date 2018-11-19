@@ -7,6 +7,7 @@
 #include <codecvt>
 #include <fstream>
 #include <regex>
+#include <map>
 using namespace std;
 //-----------------------------------------
 typedef struct DAT
@@ -28,6 +29,7 @@ typedef struct Node
 //-----------------------------------------
 vector<DAT>  m_dat;
 vector<Node> m_ReInsert;
+multimap <int, int> m_RecordTarget;
 //-----------------------------------------
 int TableSizeFor(int cap) 
 {
@@ -40,26 +42,35 @@ int TableSizeFor(int cap)
 //-----------------------------------------
 void RecursiveMove(int id, wstring exclude)
 {
-	for(int i=0;i<m_dat.size();i++)
+	multimap<int, int>::iterator iter;
+
+	int target;
+	iter = m_RecordTarget.find(id);
+
+	while(iter != m_RecordTarget.end())
 	{
-		if(m_dat[i].check==id && m_dat[i].base!=0)
+		target = iter->second;
+		if(m_dat[target].base!=0)
 		{
-			if(m_dat[i].content != exclude)
+			if(m_dat[target].content != exclude)
 			{
 				Node *node = new Node;
-
-				node->content=m_dat[i].content;
-				node->bIsWholeWord=(m_dat[i].base<0);
+				node->content=m_dat[target].content;
+				node->bIsWholeWord=(m_dat[target].base<0);
 
 				m_ReInsert.push_back(*node);
 
 				delete node;
 			}
-			m_dat[i].check=0;
-			m_dat[i].base=0;
-			m_dat[i].content=L"";
-			RecursiveMove(i,exclude); //recursive to move all the relative node from theirs target ids
+			
+			m_dat[target].check=0;
+			m_dat[target].base=0;
+			m_dat[target].content=L"";
+			RecursiveMove(target,exclude); //recursive to move all the relative node from theirs target ids
+
+			m_RecordTarget.erase(iter);
 		}
+		iter = m_RecordTarget.find(id);
 	}
 }
 //-----------------------------------------
@@ -173,6 +184,8 @@ int GetTargetID(wstring ws)
 
 		for(int n=0;n<vNodes.size();n++) //inserting
 		{
+			m_RecordTarget.insert(pair<int, int>(nTarget,k+ids[n]));
+
 			m_dat[k+ids[n]].check=nTarget;
 			m_dat[k+ids[n]].content=vNodes[n].content;
 
