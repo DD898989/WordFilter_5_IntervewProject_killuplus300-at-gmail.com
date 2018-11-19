@@ -184,15 +184,17 @@ int GetTargetID(wstring ws)
 
 		for(int n=0;n<vNodes.size();n++) //inserting
 		{
-			m_RecordTarget.insert(pair<int, int>(nTarget,k+ids[n]));
+			int id = k+ids[n];
 
-			m_dat[k+ids[n]].check=nTarget;
-			m_dat[k+ids[n]].content=vNodes[n].content;
+			m_RecordTarget.insert(pair<int, int>(nTarget,id));
+
+			m_dat[id].check=nTarget;
+			m_dat[id].content=vNodes[n].content;
 
 			if(vNodes[n].bIsWholeWord)
-				m_dat[k+ids[n]].base=-(k+ids[n]);
+				m_dat[id].base=-id;
 			else
-				m_dat[k+ids[n]].base=k+ids[n];
+				m_dat[id].base=id;
 		}
 		break;
 	}
