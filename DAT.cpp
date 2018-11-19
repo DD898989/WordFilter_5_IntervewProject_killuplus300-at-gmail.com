@@ -6,7 +6,6 @@
 #include <windows.h>
 #include <codecvt>
 #include <fstream>
-#include <regex>
 #include <map>
 using namespace std;
 //-----------------------------------------
@@ -137,7 +136,46 @@ void ResizingDAT(int reach)
 	}
 }
 //-----------------------------------------
-int Search(wstring str, bool bFindWholeWord) //return id or -1
+void ReplaceDialog(wstring &source, const wstring target,int &startFrom)
+{
+	int nMatchLen=-1;
+	int base=target[0]+abs(m_dat[0].base);
+	int base_pre=0;
+
+	for(int j=0;j<target.length();j++)
+	{
+		if(base>m_dat.size()-1)
+			break;
+		
+		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   target[j] ==m_dat[base].content.back())
+		{
+			if(m_dat[base].base<0)
+				nMatchLen = j+1;
+
+			if(j==target.length()-1)
+				break;
+				
+			base_pre = base;
+			base=abs(m_dat[base].base)+target[j+1];
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if(nMatchLen>0)
+	{
+		source.replace(startFrom, nMatchLen, wstring(nMatchLen, L'*'));
+		startFrom+=(nMatchLen); //move to next nMatchLen chars
+	}
+	else
+	{
+		startFrom++;            //move to next char
+	}
+}
+//-----------------------------------------
+int Search(wstring str, bool bFindNode = false) //return id or -1 
 {
 	int base=str[0]+abs(m_dat[0].base);
 	int base_pre=0;
@@ -146,12 +184,13 @@ int Search(wstring str, bool bFindWholeWord) //return id or -1
 	{
 		if(base>m_dat.size()-1)
 			return -1;
+		
 
 		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
 		{
 			if(j==str.length()-1)
 			{
-				if(m_dat[base].base<0 || !bFindWholeWord)
+				if(m_dat[base].base<0 || bFindNode)
 					return base;
 				else
 					return -1;
@@ -173,7 +212,7 @@ int GetTargetID(wstring ws)
 
 	ws.pop_back();
 
-	return Search(ws,false);
+	return Search(ws,true);
 }
 //-----------------------------------------
  void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same target: only differ in last char
@@ -224,7 +263,7 @@ int GetTargetID(wstring ws)
 //-----------------------------------------
 void InsertSingle(wstring str)// for single insert
 {
-	if(Search(str,true)!=-1) //already exist
+	if(Search(str)!=-1) //already exist
 		return;
 
 	int base=str[0]+abs(m_dat[0].base);
@@ -234,7 +273,7 @@ void InsertSingle(wstring str)// for single insert
 	{
 		ResizingDAT(base);
 		
-		if(Search(str.substr(0,i+1),false)==-1  ||  str.length()==i+1 )
+		if(Search(str.substr(0,i+1),true)==-1  ||  str.length()==i+1 )
 		{
 			m_ReInsert.clear();   
 			RecursiveMove(GetTargetID(str.substr(0,i+1)),str); //move all the nodes have same "check" and those nodes' "check" are theirs ID as well, all to m_ReInsert
@@ -430,40 +469,49 @@ int main()
 
 		cout<<endl<<"請輸入過濾對話"<<endl;
 		getline(wcin, input);
-		inputL = input;
 
 		//timer start
 		LARGE_INTEGER nFreq,nBeginTime,nEndTime;
 		QueryPerformanceFrequency(&nFreq);
 		QueryPerformanceCounter(&nBeginTime);
-		
-		//convert input to lower case
-		transform(inputL.begin(), inputL.end(), inputL.begin(), ::towlower);
-		
-		wregex rgx(L"\\w+");
-		for( wsregex_iterator itnd(inputL.begin(), inputL.end(), rgx), it_end; itnd != it_end; ++itnd )
+
+		if(input.length()>0)
 		{
-			dialog = (*itnd)[0];
+			inputL = input;
 
-			for(int len = minLen ; len <= maxLen ; len++)
+			//convert input to lower case
+			transform(inputL.begin(), inputL.end(), inputL.begin(), ::towlower);
+			
+			int pos = 0;
+
+			//replace position 0 ~ inputL.length()-maxLen
+			while(pos<=inputL.length()-1 )
 			{
-				if(dialog.length()<len)
-					continue;
+				if(pos+maxLen>inputL.length())
+					break;
 
-				for(int i=0;i<dialog.length()+1-len;i++)
-				{
-					word=dialog.substr(i,len);
+				word=inputL.substr(pos,maxLen);
 
-					if(Search(word,true)>0)
-						input.replace(itnd->position()+i, len, wstring(word.length(), L'*'));
-				}
+				ReplaceDialog(input,word,pos);
+			}
+
+			
+			//replace position for last maxLen char
+			while(pos<=inputL.length()-1 )
+			{
+				if(pos>inputL.length()-1)
+					break;
+
+				word=inputL.substr(pos,inputL.length()-pos);
+
+				ReplaceDialog(input,word,pos);
 			}
 		}
 
 		//output
 		cout<<endl<<"過濾後:"<<endl;
 		wcout<<input<<endl;
-		
+
 		//timer end
 		QueryPerformanceCounter(&nEndTime);
 		double timeT = (double)(nEndTime.QuadPart-nBeginTime.QuadPart)/(double)nFreq.QuadPart;
