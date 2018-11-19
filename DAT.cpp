@@ -39,7 +39,7 @@ void print()                                           //for debug
 	myfile.open("D:\\MyLog.txt", fstream::app);
 	wstring_convert<codecvt_utf8<wchar_t>> myconv;
 	myfile<<"ID\tbase\tcheck\tcontent"<<endl;;
-	for(int i=1;i<m_dat.size();i++)
+	for(int i=0;i<m_dat.size();i++)
 	{
 		if(m_dat[i].content.length()>0 || m_dat[i].base!=0 || m_dat[i].check>0)
 		{
