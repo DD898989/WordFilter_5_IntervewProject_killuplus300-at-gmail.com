@@ -205,7 +205,7 @@ int Search(const wstring& str, bool bFindNode = false) //return id or -1
 	}
 }
 //-----------------------------------------
-int GetTargetID(const wstring& ws)
+int GetTargetID(wstring ws)
 {
 	if(ws.length()==1)
 		return 0;
