@@ -293,16 +293,16 @@ int main()
 	locale::global(locale(""));	
 	wifstream stream(dicPath);
 	stream.imbue(locale(locale::empty(), new codecvt_utf8<wchar_t>));
-	vector<wstring> vWords; // collect words from dictionary
 	int countline = count(istreambuf_iterator<char>(ifstream(dicPath)), istreambuf_iterator<char>(), '\n');
+	vector<wstring> vWords; // collect words from dictionary
 	vector<wstring>::iterator itws;
 	vector<Node>::iterator itnd;
+	int minLen = INT_MAX;
+	int maxLen = INT_MIN;
 
 	ResizingDAT(65530);//init to unicode size
 	vWords.resize(countline+1);// resizing to possible space needed
 	
-	int minLen = INT_MAX;
-	int maxLen = INT_MIN;
 	itws = vWords.begin();
 	wstring line;
 	while (getline(stream, line))
@@ -357,8 +357,7 @@ int main()
 				vWords.pop_back();
 		}
 
-		
-		//remove same strings, keep "bIsWholeWord" as true if one has
+		//remove same strings, leave "bIsWholeWord" as true if has
 		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
 		for(itnd=vNodes.begin() ; itnd!=vNodes.end()-1 ; itnd++)
 		{
