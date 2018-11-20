@@ -468,7 +468,7 @@ int main()
 
 		cout<<endl<<"請輸入過濾對話"<<endl;
 		getline(wcin, input);
-		int len = inputL.length();
+		int len = input.length();
 		if(len>0)
 		{
 			//timer start
