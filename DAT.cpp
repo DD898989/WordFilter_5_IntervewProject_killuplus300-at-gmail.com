@@ -14,11 +14,11 @@ typedef struct DAT
 	//int id  //equal to array index
 
 	int base; //base<0: whole word,might also be mid node    
-	          //base>0: mid node   
-	          //base=0: empty node
+	//base>0: mid node   
+	//base=0: empty node
 	int check;//check=-1: root、len=0      
-	          //check= 0: root-child、len=1    or   empty node   
-	          //check> 0: can't define
+	//check= 0: root-child、len=1    or   empty node   
+	//check> 0: can't define
 	wstring content;
 };
 //-----------------------------------------
@@ -82,7 +82,7 @@ void RecursiveMove(int id, const wstring& exclude)
 
 				delete node;
 			}
-			
+
 			m_dat[target].check=0;
 			m_dat[target].base=0;
 			m_dat[target].content=L"";
@@ -146,7 +146,7 @@ void ReplaceDialog(wstring &source, wstring &target, int &startFrom)
 	{
 		if(base>m_dat.size()-1)
 			break;
-		
+
 		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   target[j] ==m_dat[base].content.back())
 		{
 			if(m_dat[base].base<0)
@@ -154,7 +154,7 @@ void ReplaceDialog(wstring &source, wstring &target, int &startFrom)
 
 			if(j==target.length()-1)
 				break;
-				
+
 			base_pre = base;
 			base=abs(m_dat[base].base)+target[j+1];
 		}
@@ -184,7 +184,7 @@ int Search(const wstring& str, bool bFindNode = false) //return id or -1
 	{
 		if(base>m_dat.size()-1)
 			return -1;
-		
+
 
 		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
 		{
@@ -215,10 +215,10 @@ int GetTargetID(wstring ws)
 	return Search(ws,true);
 }
 //-----------------------------------------
- void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same target: only differ in last char
+void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same target: only differ in last char
 {
 	int nTarget = GetTargetID(vNodes[0].content);
-	
+
 	int *ids = new int[vNodes.size()]; 
 
 	for(int i=0;i<vNodes.size();i++)
@@ -235,7 +235,7 @@ int GetTargetID(wstring ws)
 		}
 		if(i!=vNodes.size())  //not fit, continue loop
 			continue;
-		
+
 		//fit ok, base is k
 		if(m_dat[nTarget].base<0)   //if is end char
 			m_dat[nTarget].base=-k;
@@ -272,7 +272,7 @@ void InsertSingle(wstring str)// for single insert
 	for(int i=0;i<str.length();i++) //search down the trie
 	{
 		ResizingDAT(base);
-		
+
 		if(Search(str.substr(0,i+1),true)==-1  ||  str.length()==i+1 )
 		{
 			m_ReInsert.clear();   
@@ -325,7 +325,7 @@ void InsertSingle(wstring str)// for single insert
 			m_ReInsertEachLen.clear();
 		}
 	}
-	
+
 	m_ReInsertEachLen.clear();
 }
 //-----------------------------------------
@@ -347,7 +347,7 @@ int main()
 	string dicPath = "D:\\Dictionary.txt";
 	cout<<"Please check dictionary path: "<<dicPath<<endl;  
 	system("pause");
-	
+
 	//define
 	locale::global(locale(""));	
 	wifstream stream(dicPath);
@@ -361,7 +361,7 @@ int main()
 
 	ResizingDAT(65530);//init to unicode size
 	vWords.resize(countline+1);// resizing to possible space needed
-	
+
 	itws = vWords.begin();
 	wstring line;
 	while (getline(stream, line))
@@ -373,7 +373,7 @@ int main()
 
 		if(len<minLen)
 			minLen = len;
-		
+
 		if(len>maxLen)
 			maxLen = len;
 
@@ -392,7 +392,7 @@ int main()
 
 	sort(vWords.begin(), vWords.end(),CompareStringLenReverse());//sorting as reverse length order(inserting order: the shorter the prior, so pop-back the shortest for vector efficiency)
 
-	
+
 	//group insert every words from dictionay to double-array trie (faster then insert one-by-one)
 	for(int k=1; k<=maxLen; k++) //start from 1 not minLen, because middle node always start from length 1
 	{
@@ -445,10 +445,10 @@ int main()
 	}
 	//print();
 
-	wstring newWord;
+	wstring newWord; //insert word
 	wstring input;   //input for filter, will replaced as output
 	wstring inputL;  //lower case of "input"
-	wstring word;	 //every possible filter cases from "line"
+	wstring filterWord; //possible cases
 	while(true)
 	{
 		cout<<endl<<"請輸入新增字囊"<<endl;
@@ -468,28 +468,25 @@ int main()
 
 		cout<<endl<<"請輸入過濾對話"<<endl;
 		getline(wcin, input);
-
-		//timer start
-		LARGE_INTEGER nFreq,nBeginTime,nEndTime;
-		QueryPerformanceFrequency(&nFreq);
-		QueryPerformanceCounter(&nBeginTime);
-
 		int len = inputL.length();
-		int pos = 0;
 		if(len>0)
 		{
-			inputL = input;
+			//timer start
+			LARGE_INTEGER nFreq,nBeginTime,nEndTime;
+			QueryPerformanceFrequency(&nFreq);
+			QueryPerformanceCounter(&nBeginTime);
 
-			//convert input to lower case
+			int pos = 0;
+			inputL = input;
 			transform(inputL.begin(), inputL.end(), inputL.begin(), ::towlower);
-			
+
 			//replace position 0 ~ inputL.length()-maxLen
 			while(pos<=len-1 )
 			{
 				if(pos+maxLen>len)
 					break;
-				word=inputL.substr(pos,maxLen);
-				ReplaceDialog(input,word,pos);
+				filterWord=inputL.substr(pos,maxLen);
+				ReplaceDialog(input,filterWord,pos);
 			}
 
 			//replace position for last maxLen char
@@ -497,21 +494,20 @@ int main()
 			{
 				if(pos>len-1)
 					break;
-				word=inputL.substr(pos,len-pos);
-				ReplaceDialog(input,word,pos);
+				filterWord=inputL.substr(pos,len-pos);
+				ReplaceDialog(input,filterWord,pos);
 			}
+
+			//output
+			cout<<endl<<"過濾後:"<<endl;
+			wcout<<input<<endl;
+
+			//timer end
+			QueryPerformanceCounter(&nEndTime);
+			double timeT = (double)(nEndTime.QuadPart-nBeginTime.QuadPart)/(double)nFreq.QuadPart;
+			printf("\n耗時:%f\n",timeT);
 		}
 
-		//output
-		cout<<endl<<"過濾後:"<<endl;
-		wcout<<input<<endl;
-
-		//timer end
-		QueryPerformanceCounter(&nEndTime);
-		double timeT = (double)(nEndTime.QuadPart-nBeginTime.QuadPart)/(double)nFreq.QuadPart;
-		printf("\n耗時:%f\n",timeT);
 	}
-
-	system("pause");
 	return 0;
 }
