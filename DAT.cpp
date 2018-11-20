@@ -11,13 +11,13 @@ using namespace std;
 //-----------------------------------------
 typedef struct DAT
 {
-	//int id  //equal to array index
+	//int id;  //equal to array index
 
 	int base; //base<0: whole word,might also be mid node    
 	//base>0: mid node   
 	//base=0: empty node
-	int check;//check=-1: root、len=0      
-	//check= 0: root-child、len=1    or   empty node   
+	int check;//check=-1: root, len=0      
+	//check= 0: root-child, len=1    or   empty node   
 	//check> 0: can't define
 	wstring content;
 };
@@ -63,14 +63,11 @@ int TableSizeFor(int cap)
 //-----------------------------------------
 void RecursiveMove(int id, const wstring& exclude)
 {
-	multimap<int, int>::iterator iter;
-	int target;
-
-	iter = m_RecordCheck.find(id);
+	multimap<int, int>::iterator iter = m_RecordCheck.find(id);
 	while(iter != m_RecordCheck.end())//instead of loop "m_dat" to find which "i" match "m_dat[i].check = id", use mapping to do quick search
 	{
-		target = iter->second;
-		if(m_dat[target].base!=0)
+		int target  = iter->second;
+		if(m_dat[target].base !=0 )
 		{
 			if(m_dat[target].content != exclude)
 			{
