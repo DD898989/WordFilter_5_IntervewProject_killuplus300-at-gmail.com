@@ -492,7 +492,7 @@ int main()
 			//replace position for last maxLen char
 			while(pos<=len-1 )
 			{
-				if(pos>len-1)
+				if(pos+1>len)
 					break;
 				filterWord=inputL.substr(pos,len-pos);
 				ReplaceDialog(input,filterWord,pos);
