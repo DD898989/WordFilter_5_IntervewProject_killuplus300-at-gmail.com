@@ -136,7 +136,7 @@ void ResizingDAT(int reach)
 	}
 }
 //-----------------------------------------
-void ReplaceDialog(wstring &source, wstring &target, int &startFrom)
+void ReplaceDialog(wstring &source, const wstring &target, int &startFrom)
 {
 	int nMatchLen=-1;
 	int base=target[0]+abs(m_dat[0].base);
