@@ -13,19 +13,23 @@ typedef struct DAT
 {
 	//int id;  //equal to array index
 
-	int base; //base<0: whole word,might also be mid node    
+	int base; 
+	//base<0: whole word,might also be mid node    
 	//base>0: mid node   
 	//base=0: empty node
-	int check;//check=-1: root, len=0      
+
+	int check;
+	//check=-1: root, len=0      
 	//check= 0: root-child, len=1    or   empty node   
 	//check> 0: can't define
-	wstring content;
+
+	wchar_t wc;
 };
 //-----------------------------------------
 typedef struct Node
 {
-	wstring content;
-	bool bIsWholeWord;
+	wstring ws;
+	bool bIsCase;
 };
 //-----------------------------------------
 vector<DAT>  m_dat;
@@ -40,12 +44,12 @@ void print()                                           //for debug
 	myfile<<"ID\tbase\tcheck\tcontent"<<endl;;
 	for(int i=0;i<m_dat.size();i++)
 	{
-		if(m_dat[i].content.length()>0 || m_dat[i].base!=0 || m_dat[i].check>0)
+		if(m_dat[i].wc!=L'' || m_dat[i].base!=0 || m_dat[i].check>0)
 		{
 			myfile<<i<<"\t";
 			myfile<<m_dat[i].base<<"\t";
 			myfile<<m_dat[i].check<<"\t";
-			myfile<<myconv.to_bytes(m_dat[i].content)<<"\t";
+			myfile<<myconv.to_bytes(m_dat[i].wc)<<"\t";
 			myfile<<endl;
 		}
 	}
@@ -61,6 +65,20 @@ int TableSizeFor(int cap)
 	return (n < 0) ? 1 :  n + 1;
 }
 //-----------------------------------------
+wstring GetFullContent(int target)
+{
+	wstring temp;
+
+	while(target!=0)
+	{
+		temp+=m_dat[target].wc;
+		target = m_dat[target].check;
+	}
+	reverse(temp.begin(), temp.end());
+
+	return temp;
+}
+//-----------------------------------------
 void RecursiveMove(int id, const wstring& exclude)
 {
 	multimap<int, int>::iterator iter = m_RecordCheck.find(id);
@@ -69,21 +87,23 @@ void RecursiveMove(int id, const wstring& exclude)
 		int target  = iter->second;
 		if(m_dat[target].base !=0 )
 		{
-			if(m_dat[target].content != exclude)
+			wstring temp = GetFullContent(target);
+			if(temp != exclude)
 			{
 				Node *node = new Node;
-				node->content=m_dat[target].content;
-				node->bIsWholeWord=(m_dat[target].base<0);
+				node->ws=temp;
+				node->bIsCase=(m_dat[target].base<0);
 
 				m_ReInsert.push_back(*node);
 
 				delete node;
 			}
 
+			RecursiveMove(target,exclude); //recursive to move all the relative node from their IDs
+
 			m_dat[target].check=0;
 			m_dat[target].base=0;
-			m_dat[target].content=L"";
-			RecursiveMove(target,exclude); //recursive to move all the relative node from their IDs
+			m_dat[target].wc=L'';
 
 			m_RecordCheck.erase(iter);
 		}
@@ -95,7 +115,7 @@ struct CompareNodeReverse
 {
 	bool operator()(const Node& first, const Node& second) 
 	{
-		return first.content > second.content; 
+		return first.ws > second.ws; 
 	}
 };
 //-----------------------------------------
@@ -103,7 +123,7 @@ struct CompareNodeLen
 {
 	bool operator()(const Node& first, const Node& second) 
 	{
-		return first.content.length() < second.content.length(); 
+		return first.ws.length() < second.ws.length(); 
 	}
 };
 //-----------------------------------------
@@ -144,7 +164,7 @@ void ReplaceDialog(wstring &source, const wstring &target, int &startFrom)
 		if(base>m_dat.size()-1)
 			break;
 
-		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   target[j] ==m_dat[base].content.back())
+		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   target[j] ==m_dat[base].wc)
 		{
 			if(m_dat[base].base<0)
 				nMatchLen = j+1;
@@ -183,7 +203,7 @@ int Search(const wstring& str, bool bFindNode = false) //return id or -1
 			return -1;
 
 
-		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
+		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].wc)
 		{
 			if(j==str.length()-1)
 			{
@@ -214,12 +234,12 @@ int GetTargetID(wstring ws)
 //-----------------------------------------
 void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same target: only differ in last char
 {
-	int nTarget = GetTargetID(vNodes[0].content);
+	int nTarget = GetTargetID(vNodes[0].ws);
 
 	int *ids = new int[vNodes.size()]; 
 
 	for(int i=0;i<vNodes.size();i++)
-		ids[i] = vNodes[i].content.back();
+		ids[i] = vNodes[i].ws.back();
 
 	for(int k=1;k<m_dat.size();k+=rand()/100+1)//if k=1 not fit, then random move forward to fit
 	{
@@ -227,7 +247,7 @@ void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same tar
 		for(;i<vNodes.size();i++) //try to fit vNodes one by one
 		{
 			ResizingDAT(k+ids[i]);
-			if(m_dat[k+ids[i]].content.length()!=0)
+			if(m_dat[k+ids[i]].wc!=L'')
 				break;        //not fit, continue loop
 		}
 		if(i!=vNodes.size())  //not fit, continue loop
@@ -246,9 +266,9 @@ void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same tar
 			m_RecordCheck.insert(pair<int, int>(nTarget,id));
 
 			m_dat[id].check=nTarget;
-			m_dat[id].content=vNodes[n].content;
+			m_dat[id].wc=vNodes[n].ws.back();
 
-			if(vNodes[n].bIsWholeWord)
+			if(vNodes[n].bIsCase)
 				m_dat[id].base=-id;
 			else
 				m_dat[id].base=id;
@@ -280,8 +300,8 @@ void InsertSingle(wstring str)// for single insert
 			{
 				Node *node = new Node;
 
-				node->content=wsTemp;
-				node->bIsWholeWord=(m==i);
+				node->ws=wsTemp;
+				node->bIsCase=(m==i);
 
 				m_ReInsert.push_back(*node); //insert all relative node from input string,  ex: insert "hello", "he" already exist, so push_back "hel"(mid)、"hell"(mid)、"hello"(end)
 				wsTemp=wsTemp.substr(0,wsTemp.size()-1);
@@ -293,8 +313,8 @@ void InsertSingle(wstring str)// for single insert
 	}
 
 	sort(m_ReInsert.begin(), m_ReInsert.end(),CompareNodeLen());
-	int nMinLen=m_ReInsert.front().content.length();
-	int nMaxLen=m_ReInsert.back().content.length();
+	int nMinLen=m_ReInsert.front().ws.length();
+	int nMaxLen=m_ReInsert.back().ws.length();
 
 	sort(m_ReInsert.begin(), m_ReInsert.end(),CompareNodeReverse());
 	vector<Node> m_ReInsertEachLen;
@@ -304,12 +324,12 @@ void InsertSingle(wstring str)// for single insert
 
 		for(int j=0;j<m_ReInsert.size();j++)
 		{
-			if(m_ReInsert[j].content.length()==len)
+			if(m_ReInsert[j].ws.length()==len)
 			{
 				m_ReInsertEachLen.push_back(m_ReInsert[j]);
-				m_ReInsert[j].content=L"";
+				m_ReInsert[j].ws=L"";
 			}
-			else if(m_ReInsert[j].content==L"" && m_ReInsertEachLen.size()>0)
+			else if(m_ReInsert[j].ws==L"" && m_ReInsertEachLen.size()>0)
 			{
 				InsertBase(m_ReInsertEachLen); //group insert all the nodes that have same "check"
 				m_ReInsertEachLen.clear();
@@ -328,10 +348,10 @@ void InsertSingle(wstring str)// for single insert
 //-----------------------------------------
 void InsertGroup(vector<Node> &vNodes,int len)//for group insert from dictionary, vNodes have same length
 {
-	wstring sTarget = vNodes.back().content.substr(0,len-1);
+	wstring sTarget = vNodes.back().ws.substr(0,len-1);
 	vector<Node> vNodesInserting;
-	vNodes.back().content.substr(0,len-1);
-	while(vNodes.size()>0 && vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same "check"
+	vNodes.back().ws.substr(0,len-1);
+	while(vNodes.size()>0 && vNodes.back().ws.substr(0,len-1) == sTarget) //collect the nodes that have the same "check"
 	{
 		vNodesInserting.push_back(vNodes.back());
 		vNodes.pop_back();
@@ -400,27 +420,27 @@ int main()
 		int count = vWords.size()-1;
 		for(int i=count;i>=0;i--)
 		{
-			bool bIsWholeWord = (vWords[i].length()==k);
+			bool bIsCase = (vWords[i].length()==k);
 
 			Node node = {
 				vWords[i].substr(0,k),
-				bIsWholeWord,    // "Node.bIsWholeWord" indicate whether string is a completely word or a middle node
+				bIsCase,    // "Node.bIsCase" indicate whether string is a completely word or a middle node
 			};
 
 			vNodes.push_back(node);
 
-			if(bIsWholeWord)
+			if(bIsCase)
 				vWords.pop_back();
 		}
 
-		//remove same strings, leave "bIsWholeWord" as true if has
+		//remove same strings, leave "bIsCase" as true if has
 		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
 		for(itnd=vNodes.begin() ; itnd!=vNodes.end()-1 ; itnd++)
 		{
-			if((itnd+1)->content==itnd->content)
+			if((itnd+1)->ws==itnd->ws)
 			{
-				(itnd)->content=L"";
-				(itnd+1)->bIsWholeWord=((itnd+1)->bIsWholeWord!=itnd->bIsWholeWord);
+				(itnd)->ws=L"";
+				(itnd+1)->bIsCase=((itnd+1)->bIsCase!=itnd->bIsCase);
 			}
 		}
 
@@ -428,7 +448,7 @@ int main()
 		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
 		for(int i=vNodes.size()-1;i>=0;i--)
 		{
-			if(vNodes[i].content!=L"")
+			if(vNodes[i].ws!=L"")
 			{
 				vNodes.resize(i+1);
 				break;
