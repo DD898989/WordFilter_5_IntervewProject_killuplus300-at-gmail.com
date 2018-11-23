@@ -471,7 +471,7 @@ int main()
 				while(base_pre ==m_dat[base].check  &&  m_dat[base].content.length()>0   &&  inputL[n] == m_dat[base].content.back()) //search trie
 				{
 					if(m_dat[base].base<0)
-						nMatchLen = n+1;
+						nMatchLen = m_dat[base].content.length();
 
 					searchTime++;
 					base_pre = base;
@@ -486,9 +486,8 @@ int main()
 				
 				if(nMatchLen>0)
 				{
-					int replaceLen = m_dat[base_pre].content.length();
-					input.replace(start, replaceLen, wstring(replaceLen, L'*'));
-					if(input.length()==start+replaceLen) // replaced last char in dialog
+					input.replace(start, nMatchLen, wstring(nMatchLen, L'*'));
+					if(input.length()==start+nMatchLen) // replaced last char in dialog
 						break;
 				}
 
