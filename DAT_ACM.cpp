@@ -457,6 +457,7 @@ int main()
 
 		cout<<endl<<"請輸入過濾對話"<<endl;
 		getline(wcin, input);
+		int searchTime=0; 
 		if(input.length()>0)
 		{
 			//timer start
@@ -483,16 +484,16 @@ int main()
 					if(m_dat[base].base<0)
 						nMatchLen = n+1;
 
+					searchTime++;
 					base_pre = base;
 
 					if(inputL.length()-1 < n+1)
-					{
 						break;
-					}
 
 					base=abs(m_dat[base].base)+inputL[n+1];
 					n++;
 				}
+				searchTime++;
 				
 				if(nMatchLen>0)
 				{
@@ -537,6 +538,7 @@ int main()
 				base = abs(m_dat[failId].base)+inputL[n];
 			}
 
+			cout<<endl<<"搜尋次數:"<<searchTime<<endl;
 			cout<<endl<<"過濾後:"<<endl;
 			wcout<<input<<endl;
 
