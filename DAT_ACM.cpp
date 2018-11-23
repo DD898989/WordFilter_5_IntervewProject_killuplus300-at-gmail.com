@@ -484,9 +484,9 @@ int main()
 					n++;
 				}
 				searchTime++;
-				//----------------- here: inputL[n]       is the char that terminate current trie search       -------------------
-				//----------------- here: inputL[start]   is the char that no longer have to concern           -------------------
-				//----------------- here: m_dat[base_pre] is the deepest node that can reach before terminate  -------------------
+				//----------------- here: inputL[n]       is the char that terminate current trie search  ex: hell"z" 
+				//----------------- here: inputL[start]   is the current first char(a root-child),        ex: "h"ello
+				//----------------- here: m_dat[base_pre] is the deepest node that can reach before terminate  ex: hel"l"
 				
 				//replace if have found
 				if(nMatchLen>0)
@@ -503,12 +503,12 @@ int main()
 					if(n+1>inputL.length()-1) //end
 						break;
 					
-					if(base == inputL[n]+abs(m_dat[0].base))
+					if(base == inputL[n]+abs(m_dat[0].base)) //char inputL[n] not start char, skip it.
 						n++;
 
-					base = inputL[n]+abs(m_dat[0].base);
-					base_pre=0;
-					start = n;
+					base = inputL[n]+abs(m_dat[0].base); //start from new current
+					base_pre=0;							 //start from new current
+					start = n;							 //start from new current
 					
 					continue;
 				}
