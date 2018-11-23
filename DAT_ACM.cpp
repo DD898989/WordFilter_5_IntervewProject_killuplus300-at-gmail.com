@@ -328,6 +328,7 @@ void InsertGroup(vector<Node> &vNodes,int len)//for group insert from dictionary
 	}
 	InsertBase(vNodesInserting);//insert all nodes that have the same "check"
 }
+
 //-----------------------------------------
 int main()
 {
@@ -470,16 +471,18 @@ int main()
 			int base_pre = 0;
 			int start = 0;
 			int failId = 0;
-
+			
 			for(int n = 0; n < inputL.length();)
 			{
 				if(base>m_dat.size()-1)
 					break;
 				
-				int bFound = false;
+				int nMatchLen=-1;
 				while(base_pre ==m_dat[base].check  &&  m_dat[base].content.length()>0   &&  inputL[n] == m_dat[base].content.back()) //search trie
 				{
-					bFound = true;
+					if(m_dat[base].base<0)
+						nMatchLen = n+1;
+
 					base_pre = base;
 
 					if(inputL.length()-1 < n+1)
@@ -490,8 +493,8 @@ int main()
 					base=abs(m_dat[base].base)+inputL[n+1];
 					n++;
 				}
-
-				if(m_dat[base_pre].base<0 && bFound)  //replace
+				
+				if(nMatchLen>0)
 				{
 					int replaceLen = m_dat[base_pre].content.length();
 					input.replace(start, replaceLen, wstring(replaceLen, L'*'));
