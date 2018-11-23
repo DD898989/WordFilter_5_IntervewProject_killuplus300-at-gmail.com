@@ -470,10 +470,11 @@ int main()
 				int nMatchLen=-1;
 				while(base_pre ==m_dat[base].check  &&  m_dat[base].content.length()>0   &&  inputL[n] == m_dat[base].content.back()) //search trie
 				{
+					searchTime++;
+
 					if(m_dat[base].base<0)
 						nMatchLen = m_dat[base].content.length();
 
-					searchTime++;
 					base_pre = base;
 
 					if(inputL.length()-1 < n+1)
@@ -483,7 +484,11 @@ int main()
 					n++;
 				}
 				searchTime++;
+				//----------------- here: inputL[n]       is the char that terminate current trie search       -------------------
+				//----------------- here: inputL[start]   is the char that no longer have to concern           -------------------
+				//----------------- here: m_dat[base_pre] is the deepest node that can reach before terminate  -------------------
 				
+				//replace if have found
 				if(nMatchLen>0)
 				{
 					input.replace(start, nMatchLen, wstring(nMatchLen, L'*'));
