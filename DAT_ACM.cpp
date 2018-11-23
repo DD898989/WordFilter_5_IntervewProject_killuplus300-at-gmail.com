@@ -502,22 +502,14 @@ int main()
 				{
 					if(n+1>inputL.length()-1) //end
 						break;
-
-					wstring temp;  temp+=inputL[n];
-
-					if(Search(temp,true)==-1) //is current char not exist in dictionary
-					{
-						//start from next char
-						start++; 
+					
+					if(base == inputL[n]+abs(m_dat[0].base))
 						n++;
-					}
-					else
-					{
-						//start from current char
-						base_pre=0;
-						start = n;
-					}
-					base=inputL[n]+abs(m_dat[0].base);
+
+					base = inputL[n]+abs(m_dat[0].base);
+					base_pre=0;
+					start = n;
+					
 					continue;
 				}
 				else //move to fail node
