@@ -344,7 +344,6 @@ int main()
 	vector<wstring> vWords; // collect words from dictionary
 	vector<wstring>::iterator itws;
 	vector<Node>::iterator itnd;
-	int minLen = INT_MAX;
 	int maxLen = INT_MIN;
 
 	ResizingDAT(65530);//init to unicode size
@@ -358,9 +357,6 @@ int main()
 
 		if(len==0)
 			continue;
-
-		if(len<minLen)
-			minLen = len;
 
 		if(len>maxLen)
 			maxLen = len;
@@ -444,13 +440,6 @@ int main()
 		if(newWord.length()>0) 
 		{
 			transform(newWord.begin(), newWord.end(), newWord.begin(), ::towlower);
-
-			if(newWord.length()<minLen && newWord.length()>0)
-				minLen = newWord.length();
-
-			if(newWord.length()>maxLen)
-				maxLen = newWord.length();
-
 			InsertSingle(newWord);
 		}
 
