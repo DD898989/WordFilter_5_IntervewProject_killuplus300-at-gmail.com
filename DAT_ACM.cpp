@@ -141,10 +141,6 @@ void ResizingDAT(int reach)
 		m_dat[0].check=-1;
 	}
 }
-
-
-
-
 //-----------------------------------------
 int Search(const wstring& str, bool bFindNode = false) //return id or -1 
 {
@@ -156,7 +152,6 @@ int Search(const wstring& str, bool bFindNode = false) //return id or -1
 		if(base>m_dat.size()-1)
 			return -1;
 
-
 		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
 		{
 			if(j==str.length()-1)
@@ -166,8 +161,6 @@ int Search(const wstring& str, bool bFindNode = false) //return id or -1
 				else
 					return -1;
 			}
-
-
 
 			base_pre = base;
 			base=abs(m_dat[base].base)+str[j+1];
@@ -328,7 +321,6 @@ void InsertGroup(vector<Node> &vNodes,int len)//for group insert from dictionary
 	}
 	InsertBase(vNodesInserting);//insert all nodes that have the same "check"
 }
-
 //-----------------------------------------
 int main()
 {
@@ -432,7 +424,6 @@ int main()
 	wstring newWord; //insert word
 	wstring input;   //input for filter, will replaced as output
 	wstring inputL;  //lower case of "input"
-	wstring filterWord; //possible cases
 	while(true)
 	{
 		cout<<endl<<"請輸入新增字囊"<<endl;
