@@ -483,7 +483,7 @@ int main()
 				if(nMatchLen>0)
 				{
 					input.replace(start, nMatchLen, wstring(nMatchLen, L'*'));
-					if(input.length()==start+nMatchLen) // replaced last char in dialog
+					if(input.length()==start+nMatchLen) // //end
 						break;
 				}
 
@@ -497,16 +497,16 @@ int main()
 					if(base == inputL[n]+abs(m_dat[0].base)) //char inputL[n] not start char, skip it.
 						n++;
 
-					base = inputL[n]+abs(m_dat[0].base); //start from new current
-					base_pre=0;							 //start from new char
-					start = n;							 //start from new char
+					base = inputL[n]+abs(m_dat[0].base); //start from new char
+					base_pre=0;			      //start from new char
+					start = n;			      //start from new char
 					
 					continue;
 				}
 				else //move to fail node
 				{
 					start += (m_dat[base_pre].content.length()- failStrLen);
-					if(start>inputL.length()-1)
+					if(start>inputL.length()-1)//end
 						break;
 				}
 
