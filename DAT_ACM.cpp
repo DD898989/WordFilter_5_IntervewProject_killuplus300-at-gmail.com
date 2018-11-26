@@ -498,8 +498,8 @@ int main()
 						n++;
 
 					base = inputL[n]+abs(m_dat[0].base); //start from new current
-					base_pre=0;							 //start from new current
-					start = n;							 //start from new current
+					base_pre=0;							 //start from new char
+					start = n;							 //start from new char
 					
 					continue;
 				}
