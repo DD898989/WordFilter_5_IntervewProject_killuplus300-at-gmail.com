@@ -506,12 +506,14 @@ int main()
 				else //move to fail node
 				{
 					start += (m_dat[base_pre].content.length()- failStrLen);
+					
 					if(start>inputL.length()-1)//end
 						break;
+					
+					base_pre =failId;
+					base = abs(m_dat[failId].base)+inputL[n];
 				}
 
-				base_pre =failId;
-				base = abs(m_dat[failId].base)+inputL[n];
 			}
 
 			cout<<endl<<"搜尋次數:"<<searchTime<<endl;
