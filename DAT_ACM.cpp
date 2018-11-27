@@ -24,6 +24,8 @@ typedef struct DAT
 	//check> 0: can't define
 
 	int failId;
+	//failId=0: no fail node
+	//failId>0: has fail node
 
 	wstring content;
 };
@@ -37,27 +39,6 @@ typedef struct Node
 vector<DAT>  m_dat;
 vector<Node> m_ReInsert;
 multimap <int, int> m_RecordCheck;
-//-----------------------------------------
-void print()                                           //for debug
-{
-	ofstream  myfile;
-	myfile.open("D:\\MyLog.txt", fstream::app);
-	wstring_convert<codecvt_utf8<wchar_t>> myconv;
-	myfile<<"ID"<<"\t"<<"base"<<"\t"<<"check"<<"\t"<<"failId"<<"\t"<<"content"<<endl;
-	for(int i=0;i<m_dat.size();i++)
-	{
-		if(m_dat[i].content.length()>0 || m_dat[i].base!=0 || m_dat[i].check>0)
-		{
-			myfile<<i<<"\t";
-			myfile<<m_dat[i].base<<"\t";
-			myfile<<m_dat[i].check<<"\t";
-			myfile<<m_dat[i].failId<<"\t";
-			myfile<<myconv.to_bytes(m_dat[i].content)<<"\t";
-			myfile<<endl;
-		}
-	}
-	myfile.close();
-}
 //-----------------------------------------
 int TableSizeFor(int cap) 
 {
