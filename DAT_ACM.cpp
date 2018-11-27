@@ -497,21 +497,18 @@ int main()
 					if(base == inputL[n]+abs(m_dat[0].base)) //char inputL[n] not start char, skip it.
 						n++;
 
-					base = inputL[n]+abs(m_dat[0].base); //start from new char
 					base_pre=0;			      //start from new char
+					base = inputL[n]+abs(m_dat[0].base); //start from new char
 					start = n;			      //start from new char
-					
-					continue;
 				}
 				else //move to fail node
 				{
-					start += (m_dat[base_pre].content.length()- failStrLen);
-					
 					if(start>inputL.length()-1)//end
 						break;
 					
 					base_pre =failId;
 					base = abs(m_dat[failId].base)+inputL[n];
+					start += (m_dat[base_pre].content.length()- failStrLen);
 				}
 
 			}
