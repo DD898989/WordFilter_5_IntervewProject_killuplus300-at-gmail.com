@@ -467,27 +467,25 @@ int main()
 					if(input.length()==start+nMatchLen) // //end
 						break;
 				}
+				
+				
+				if(start>inputL.length()-1)//end
+					break;
 
 				failId = m_dat[base_pre].failId;
 				int failStrLen = m_dat[failId].content.length();
 				if(failStrLen==0) //no fail node
 				{
-					if(n+1>inputL.length()-1) //end
-						break;
-					
 					if(base == inputL[n]+abs(m_dat[0].base)) //char inputL[n] not start char, skip it.
 						n++;
 
-					base_pre=0;			      //start from new char
+					base_pre = 0;			      //start from new char
 					base = inputL[n]+abs(m_dat[0].base); //start from new char
 					start = n;			      //start from new char
 				}
 				else //move to fail node
 				{
-					if(start>inputL.length()-1)//end
-						break;
-					
-					base_pre =failId;
+					base_pre = failId;
 					base = abs(m_dat[failId].base)+inputL[n];
 					start += (m_dat[base_pre].content.length()- failStrLen);
 				}
