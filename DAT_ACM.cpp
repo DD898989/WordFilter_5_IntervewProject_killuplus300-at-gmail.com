@@ -198,10 +198,11 @@ void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same tar
 
 			m_RecordCheck.insert(pair<int, int>(nTarget,id));
 
+
+
 			m_dat[id].check=nTarget;
 			m_dat[id].content=vNodes[n].content;
 
-			//assign fail id
 			m_dat[id].failId=0;
 			wstring temp = vNodes[n].content;
 			while(m_dat[id].failId<=0 && temp.length()>0)
@@ -468,15 +469,16 @@ int main()
 					if(input.length()==start+nMatchLen) // //end
 						break;
 				}
-				
-				
-				if(start>inputL.length()-1)//end
+
+
+				if(n+1>inputL.length()-1) //end
 					break;
 
 				failId = m_dat[base_pre].failId;
 				int failStrLen = m_dat[failId].content.length();
 				if(failStrLen==0) //no fail node
 				{
+
 					if(base == inputL[n]+abs(m_dat[0].base)) //char inputL[n] not start char, skip it.
 						n++;
 
@@ -486,6 +488,7 @@ int main()
 				}
 				else //move to fail node
 				{
+					
 					base_pre = failId;
 					base = abs(m_dat[failId].base)+inputL[n];
 					start += (m_dat[base_pre].content.length()- failStrLen);
