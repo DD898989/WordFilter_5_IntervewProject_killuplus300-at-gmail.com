@@ -198,11 +198,10 @@ void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same tar
 
 			m_RecordCheck.insert(pair<int, int>(nTarget,id));
 
-
-
 			m_dat[id].check=nTarget;
 			m_dat[id].content=vNodes[n].content;
 
+			//assign fail id
 			m_dat[id].failId=0;
 			wstring temp = vNodes[n].content;
 			while(m_dat[id].failId<=0 && temp.length()>0)
