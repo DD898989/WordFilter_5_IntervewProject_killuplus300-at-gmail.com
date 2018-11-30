@@ -447,7 +447,10 @@ int main()
 					searchTime++;
 
 					if(m_dat[base].base<0)
+					{
 						nMatchLen = m_dat[base].content.length();
+						break;
+					}
 
 					base_pre = base;
 
