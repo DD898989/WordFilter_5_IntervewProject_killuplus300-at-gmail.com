@@ -419,7 +419,6 @@ public:
 			getline(wcin, input);
 		}
 
-		int searchTime=0; 
 		if(input.length()>0)
 		{
 			wstring in_cpy = input;
