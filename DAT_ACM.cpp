@@ -19,18 +19,6 @@ public:
 	//------------------------------------------------
 	vector<wstring> m_vDictionary;
 	//------------------------------------------------
-	void print()   //for debug
-	{
-		wofstream  myfile;
-		myfile.open("D:\\MyLog.txt", fstream::app);
-		wstring_convert<codecvt_utf8<wchar_t>> myconv;
-		myfile<<endl;
-		for(int i=0;i<m_vDictionary.size();i++)
-			myfile<<m_vDictionary[i]<<"\t";
-		myfile<<endl;
-		myfile.close();
-	}
-	//------------------------------------------------
 	wstring FilterDialog(wstring wsInput)
 	{
 		locale::global(locale(""));
@@ -56,10 +44,6 @@ public:
 	}
 	//------------------------------------------------
 };
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-ExampleFilter *exa_test;
 //------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------
@@ -211,65 +195,6 @@ public:
 		}
 	}
 	//------------------------------------------------
-	//-----------------------------------------
-	//int BinarySearch(int l,vector<Node>& vNode,int r,wstring &str,bool bStart=false) // = bisection method, recusive function
-	//{
-	//	static	bool IsDeadEnd;
-	//	static	bool IsBothDeadEnd;
-
-	//	if(bStart)
-	//	{
-	//		IsDeadEnd = false;
-	//		IsBothDeadEnd = false;
-	//	}
-
-	//	int mid;
-	//	int len = str.length();
-	//	if(r>l)
-	//	{
-	//		mid=floor((float)(l+r)/2);
-
-	//		if(IsBothDeadEnd)
-	//			return mid;
-
-	//		if(IsDeadEnd)
-	//		{
-	//			if(l != r)
-	//			{
-	//				if(mid==vNode.size()-1)
-	//					return mid;
-
-	//				mid = r;
-
-	//				IsBothDeadEnd=true;
-	//			}
-	//		}
-
-	//		if(mid == l || mid == r) 
-	//			IsDeadEnd = true;
-
-	//		wstring temp = vNode[mid].content;
-
-	//		if(temp.length()<len)
-	//			return BinarySearch(l,vNode,mid,str);
-
-	//		if(temp.length()>len)
-	//			return BinarySearch(mid,vNode,r,str);
-
-	//		for(int i=0;i<len;i++)
-	//		{
-	//			if(temp[i]>str[i])
-	//				return BinarySearch(l,vNode,mid,str);
-
-	//			if(temp[i]<str[i])
-	//				return BinarySearch(mid,vNode,r,str);
-
-	//			if(i == len-1)
-	//				return -mid; //negative = find exact word
-	//		}
-	//	}
-	//}
-	//-----------------------------------------
 	void InsertSingle(wstring str)// for single insert
 	{
 		int id = Search(str);
@@ -299,19 +224,6 @@ public:
 		sort(m_SortedDic.begin(), m_SortedDic.end(),CompareNodeReverse());
 		
 		m_SortedDic.erase( unique( m_SortedDic.begin(), m_SortedDic.end() ), m_SortedDic.end() );
-
-		//wofstream  myfile;
-		//myfile.open("D:\\MyLog.txt", fstream::app);
-		//wstring_convert<codecvt_utf8<wchar_t>> myconv;
-		//myfile<<endl;
-		//myfile<<"----"<<str<<endl;
-		//for(int i=0;i<m_SortedDic.size();i++)
-		//{
-		//	myfile<<"\t"<<m_SortedDic[i].content<<"\t";
-		//	myfile<<m_SortedDic[i].bIsWord<<"\n";
-		//}
-		//myfile<<endl;
-		//myfile.close();
 
 		vector<Node> m_SortedDic_Copy(m_SortedDic);
 
@@ -501,8 +413,6 @@ public:
 	//------------------------------------------------
 	void FilterDialog(wstring input=L"",wstring example=L"")
 	{
-		wstring in_cpy; 
-
 		if(input==L"")
 		{
 			cout<<endl<<"請輸入過濾對話"<<endl;
@@ -512,27 +422,16 @@ public:
 		int searchTime=0; 
 		if(input.length()>0)
 		{
-			in_cpy = input;
+			wstring in_cpy = input;
 			//-----------------------
 			//-----------------------
 			//-----------------------
 			int base = in_cpy[0]+abs(m_dat[0].base);
-			int base_pre = 0;
-			int From = 0;
-			int To=1;
-			int failId = 0;
-			int nMatchLen=-1;
+			int base_pre = 0, From = 0, To = 1, failId = 0, nMatchLen = -1;
 			bool bTestOK=true;
-			DAT dat_now;
-			DAT dat_fail;
 
 			while(true)
 			{
-				//if(base>m_dat.size()-1)
-				//	break;
-				//wstring test1 = in_cpy.substr(From,To-From);
-				//wstring test2 =  m_dat[base].content;
-
 				while(in_cpy.substr(From,To-From) == m_dat[base].content) //search trie
 				{
 					if(m_dat[base].base<0)
@@ -548,9 +447,6 @@ public:
 
 					base=abs(m_dat[base].base)+in_cpy[To];
 					To++;
-
-					//test1 = in_cpy.substr(From,To-From);
-					//test2 =  m_dat[base].content;
 				}
 
 				DAT dat_char = m_dat[in_cpy[From]+abs(m_dat[0].base)];
@@ -571,13 +467,15 @@ public:
 
 				failId = m_dat[base_pre].failId;
 
-				dat_now = m_dat[base_pre];
-				dat_fail =  m_dat[failId];
+				DAT dat_now = m_dat[base_pre];
+				DAT dat_fail =  m_dat[failId];
 
 				if(failId==0) //no fail node
 				{
-					base_pre = 0;
+					//assing From
 					From++;
+					
+					//assing To
 					To = From+1; //"To" must greater than "From" for "in_cpy.substr(From,To-From)"
 
 					if(From>=in_cpy.length())
@@ -588,11 +486,14 @@ public:
 					}
 					else
 					{
+						//assing two bases
+						base_pre = 0;
 						base = in_cpy[From]+abs(m_dat[0].base); //From from new char
 					}
 				}
 				else //move to fail node
 				{
+					//assing To
 					To -= (
 						dat_now.content.length()  - (dat_now.failFrom  + dat_fail.content.length()) 
 						);
@@ -624,20 +525,23 @@ public:
 							bTestOK = false;
 						break; 
 					}
-
+					
+					//assing From
 					From += dat_now.failFrom;
 					if(dat_now.failFrom<1)
 						From++;
 					
+					//if itself is word before add in_cpy[To-1]
 					if(dat_fail.base<0)
 						nMatchLen = dat_fail.content.length();
 
+					//assign two bases
 					base = abs(dat_fail.base)+in_cpy[To-1];
 					base_pre = failId;
 				}
 			}
 
-			if(bTestOK)// test ok  OR  no testing now
+			if(bTestOK)// test ok  OR  not testing now
 			{
 				cout<<endl<<"過濾後:"<<endl;
 				wcout<<input<<endl;
@@ -649,19 +553,11 @@ public:
 				wcout<<L"Example: "<<example <<endl;    
 				wcout<<L"DAT    : "<<input   <<endl;
 				system("pause");
-
-				//exa_test->print();
-				//print();//dat_test
-				//InsertSingle(L"test insert"); 
 			}
 		}
 		return;
 	}
 };
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-DAT_ACM       *dat_test;
 //------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------
@@ -692,9 +588,9 @@ void main()
 	for(int i=0;i<testWords;i++)
 		vWords.push_back(RandomString(1,maxWordLen,wordPool));//////////////
 	
-	exa_test = new ExampleFilter();
-	dat_test = new DAT_ACM();
-	
+	ExampleFilter *exa_test = new ExampleFilter();
+	DAT_ACM       *dat_test = new DAT_ACM();
+
 	exa_test->m_vDictionary = vWords; //default dictionay 
 	dat_test->AddDicBase(vWords);     //default dictionay 
 
@@ -716,8 +612,7 @@ void main()
 	//--------------------------------------------- test case over
 
 
-
-	//--------------------------------------------- main case start
+	//--------------------------------------------- main case From
 	string dicPath = "D:\\Dictionary.txt";
 	cout<<"Please check dictionary path: "<<dicPath<<endl;  
 	system("pause");
