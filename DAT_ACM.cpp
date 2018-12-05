@@ -328,7 +328,7 @@ public:
 
 		//group insert every words from dictionay to double-array trie (faster then insert one-by-one)
 		vector<Node> vNodes;
-		for(int k=1; k<=maxLen; k++) //From from 1 not minLen, because middle node always From from length 1
+		for(int k=1; k<=maxLen; k++) //start from 1 not minLen, because middle node always start from length 1
 		{
 			//cout<<"constructing trie, remaining words: "<<vWords.size()<<endl;
 			int count = vWords.size()-1;
@@ -583,7 +583,7 @@ void main()
 	int maxDialogLen = 30;
 	wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
 	wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
-	//--------------------------------------------- test case From
+	//--------------------------------------------- test case start
 	vector<wstring> vWords;
 	for(int i=0;i<testWords;i++)
 		vWords.push_back(RandomString(1,maxWordLen,wordPool));//////////////
@@ -612,7 +612,7 @@ void main()
 	//--------------------------------------------- test case over
 
 
-	//--------------------------------------------- main case From
+	//--------------------------------------------- main case start
 	string dicPath = "D:\\Dictionary.txt";
 	cout<<"Please check dictionary path: "<<dicPath<<endl;  
 	system("pause");
