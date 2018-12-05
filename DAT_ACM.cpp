@@ -6,388 +6,437 @@
 #include <windows.h>
 #include <codecvt>
 #include <fstream>
-#include <map>
+#include <random>
 using namespace std;
-//-----------------------------------------
-typedef struct DAT
-{
-	//int id;  //equal to array index
 
-	int base; 
-	//base<0: whole word,might also be mid node    
-	//base>0: mid node   
-	//base=0: empty node
-
-	int check;
-	//check=-1: root, len=0      
-	//check= 0: root-child, len=1    or   empty node   
-	//check> 0: can't define
-
-	int failId;
-	//failId=0: no fail node
-	//failId>0: has fail node
-
-	wstring content;
-};
-//-----------------------------------------
-typedef struct Node
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+class ExampleFilter
 {
-	wstring content;
-	bool bIsCase;
-};
-//-----------------------------------------
-vector<DAT>  m_dat;
-vector<Node> m_ReInsert;
-multimap <int, int> m_RecordCheck;
-//-----------------------------------------
-int TableSizeFor(int cap) 
-{
-	int n = cap - 1;
-	n |= n >> 1;
-	n |= n >> 2;
-	n |= n >> 4;
-	n |= n >> 8;
-	n |= n >> 16;
-	return (n < 0) ? 1 :  n + 1;
-}
-//-----------------------------------------
-void RecursiveMove(int id, const wstring& exclude)
-{
-	multimap<int, int>::iterator iter = m_RecordCheck.find(id);
-	while(iter != m_RecordCheck.end())//instead of loop "m_dat" to find which "i" match "m_dat[i].check = id", use mapping to do quick search
+public: 
+	//------------------------------------------------
+	//------------------------------------------------
+	vector<wstring> m_vDictionary;
+	//------------------------------------------------
+	void print()   //for debug
 	{
-		int target  = iter->second;
-		if(m_dat[target].base !=0 )
+		wofstream  myfile;
+		myfile.open("D:\\MyLog.txt", fstream::app);
+		wstring_convert<codecvt_utf8<wchar_t>> myconv;
+		myfile<<endl;
+		for(int i=0;i<m_vDictionary.size();i++)
+			myfile<<m_vDictionary[i]<<"\t";
+		myfile<<endl;
+		myfile.close();
+	}
+	//------------------------------------------------
+	wstring FilterDialog(wstring wsInput)
+	{
+		locale::global(locale(""));
+		int* aryMark = new int[wsInput.size()]();
+
+		for(int n = 0; n<m_vDictionary.size(); n++)
 		{
-			if(m_dat[target].content != exclude)
+			wstring nCurrentWord = m_vDictionary[n];
+			size_t start_pos = 0;
+			while((start_pos = wsInput.find(m_vDictionary[n], start_pos)) != string::npos)
 			{
-				Node *node = new Node;
-				node->content=m_dat[target].content;
-				node->bIsCase=(m_dat[target].base<0);
-
-				m_ReInsert.push_back(*node);
-
-				delete node;
+				for(int i =0 ;i<m_vDictionary[n].length();i++)
+					aryMark[start_pos+i]=1;
+				start_pos += 1;//from.length(); 
 			}
-
-			m_dat[target].check=0;
-			m_dat[target].base=0;
-			m_dat[target].failId=0;
-			m_dat[target].content=L"";
-			RecursiveMove(target,exclude); //recursive to move all the relative node from their IDs
-
-			m_RecordCheck.erase(iter);
 		}
-		iter = m_RecordCheck.find(id);
-	}
-}
-//-----------------------------------------
-struct CompareNodeReverse
-{
-	bool operator()(const Node& first, const Node& second) 
-	{
-		return first.content > second.content; 
-	}
-};
-//-----------------------------------------
-struct CompareNodeLen
-{
-	bool operator()(const Node& first, const Node& second) 
-	{
-		return first.content.length() < second.content.length(); 
-	}
-};
-//-----------------------------------------
-struct CompareStringLenReverse
-{
-	bool operator()(const wstring& first, const wstring& second) 
-	{
-		return first.length() > second.length(); 
-	}
-};
-//-----------------------------------------
-void ResizingDAT(int reach)
-{
-	int ori_size = m_dat.size();
-	if(reach>ori_size-1)
-	{
-		int new_size = TableSizeFor(reach+1);
 
-		cout<<"resizing array..."<<ori_size<<" to "<<new_size<<endl;
-		m_dat.resize(new_size);
-		for(int m=ori_size;m<m_dat.size();m++)
+		for(int i=0;i<wsInput.length();i++)
+			if(aryMark[i])
+				wsInput[i] = L'*';
+		delete aryMark;
+		return wsInput;
+	}
+	//------------------------------------------------
+};
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+ExampleFilter *exa_test;
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+class DAT_ACM
+{
+public:
+	//------------------------------------------------
+	void print(wstring ws=L"")   //for debug
+	{
+		wofstream  myfile;
+		myfile.open("D:\\MyLog.txt", fstream::app);
+		wstring_convert<codecvt_utf8<wchar_t>> myconv;
+		if(ws!=L"")
+			myfile<<L"Insert:\t"<<ws<<endl;
+		myfile<<"ID"<<"\t"<<"base"<<"\t"<<"check"<<"\t"<<"failId"<<"\t"<<"failFrom"<<"\t"<<"content"<<endl;
+		for(int i=0;i<m_dat.size();i++)
 		{
-			m_dat[m].base=0;
-			m_dat[m].check=0;
-			m_dat[m].failId=0;
-		}
-		m_dat[0].check=-1;
-	}
-}
-//-----------------------------------------
-int Search(const wstring& str, bool bFindNode = false) //return id or -1 
-{
-	int base=str[0]+abs(m_dat[0].base);
-	int base_pre=0;
-
-	for(int j=0;j<str.length();j++)
-	{
-		if(base>m_dat.size()-1)
-			return -1;
-
-		if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
-		{
-			if(j==str.length()-1)
+			if(m_dat[i].base!=0 ||
+				m_dat[i].check!=0 ||
+				m_dat[i].failId!=0 ||
+				m_dat[i].failFrom!=0 ||
+				m_dat[i].content.length() !=0 
+				)
 			{
-				if(m_dat[base].base<0 || bFindNode) 
-					return base;
+				myfile<<i<<"\t";
+				myfile<<m_dat[i].base<<"\t";
+				myfile<<m_dat[i].check<<"\t";
+				myfile<<m_dat[i].failId<<"\t";
+				myfile<<m_dat[i].failFrom<<"\t";
+				myfile<<m_dat[i].content<<"\t";
+				myfile<<endl;
+			}
+		}
+		myfile.close();
+	}
+	//------------------------------------------------
+	typedef struct DAT
+	{
+		//int id;  //equal to array index
+
+		int base; 
+		//base<0: whole word,might also be mid node    
+		//base>0: mid node   
+		//base=0: empty node
+
+		int check;
+		//check=-1: root, len=0      
+		//check= 0: root-child, len=1    or   empty node   
+		//check> 0: can't define
+
+		int failId;
+		//failId=0: no fail node
+		//failId>0: has fail node
+
+		int failFrom;//"hello" fail to "llo",  failFrom = 2
+
+		wstring content;
+	};
+	//------------------------------------------------
+	typedef struct Node
+	{
+		wstring content;
+		bool bIsWord;
+
+		bool operator==(const Node& a) const
+		{
+			return ( a.bIsWord==bIsWord && a.content ==content);
+		}
+	};
+	//------------------------------------------------
+	vector<DAT>  m_dat;
+	vector<Node>  m_SortedDic;
+	//------------------------------------------------
+	struct CompareNodeReverse
+	{
+		bool operator()(const Node& first, const Node& second) 
+		{
+			if(first.content.length()==second.content.length())
+				if(first.content != second.content)
+					return first.content < second.content; 
 				else
-					return -1;
-			}
-
-			base_pre = base;
-			base=abs(m_dat[base].base)+str[j+1];
-		}
-		else
-		{
-			return -1;
-		}
-	}
-}
-//-----------------------------------------
-int GetTargetID(wstring ws)
-{
-	if(ws.length()==1)
-		return 0;
-
-	ws.pop_back();
-
-	return Search(ws,true);
-}
-//-----------------------------------------
-void InsertBase(vector<Node> &vNodes) //vNodes all have same length and same target: only differ in last char
-{
-	int nTarget = GetTargetID(vNodes[0].content);
-
-	int *ids = new int[vNodes.size()]; 
-
-	for(int i=0;i<vNodes.size();i++)
-		ids[i] = vNodes[i].content.back();
-
-	for(int k=1;k<m_dat.size();k+=rand()/100+1)//if k=1 not fit, then random move forward to fit
-	{
-		int i=0;
-		for(;i<vNodes.size();i++) //try to fit vNodes one by one
-		{
-			ResizingDAT(k+ids[i]);
-			if(m_dat[k+ids[i]].content.length()!=0)
-				break;        //not fit, continue loop
-		}
-		if(i!=vNodes.size())  //not fit, continue loop
-			continue;
-
-		//fit ok, base is k
-		if(m_dat[nTarget].base<0)   //if is end char
-			m_dat[nTarget].base=-k;
-		else
-			m_dat[nTarget].base=k;
-
-		for(int n=0;n<vNodes.size();n++) //inserting
-		{
-			int id = k+ids[n];
-
-			m_RecordCheck.insert(pair<int, int>(nTarget,id));
-
-
-
-			m_dat[id].check=nTarget;
-			m_dat[id].content=vNodes[n].content;
-
-			m_dat[id].failId=0;
-			wstring temp = vNodes[n].content;
-			while(m_dat[id].failId<=0 && temp.length()>0)
-			{
-				temp.erase(temp.begin());
-				m_dat[id].failId = Search(temp,true);
-			}
-			if(m_dat[id].failId<0)
-				m_dat[id].failId=0;
-
-
-			if(vNodes[n].bIsCase)
-				m_dat[id].base=-id;
+					return first.bIsWord;
 			else
-				m_dat[id].base=id;
+				return first.content.length() > second.content.length(); 
 		}
-		break;
-	}
-	delete ids;
-}
-//-----------------------------------------
-void InsertSingle(wstring str)// for single insert
-{
-	if(Search(str)!=-1) //already exist
-		return;
-
-	int base=str[0]+abs(m_dat[0].base);
-	int base_pre=0;
-
-	for(int i=0;i<str.length();i++) //search down the trie
+	};
+	//------------------------------------------------
+	struct CompareStringLenReverse
 	{
-		ResizingDAT(base);
-
-		if(Search(str.substr(0,i+1),true)==-1  ||  str.length()==i+1 )
+		bool operator()(const wstring& first, const wstring& second) 
 		{
-			m_ReInsert.clear();   
-			RecursiveMove(GetTargetID(str.substr(0,i+1)),str); //move all the nodes have same "check" and those nodes' "check" are theirs ID as well, all to m_ReInsert
-			wstring wsTemp = str; 
+			return first.length() > second.length(); 
+		}
+	};
+	//------------------------------------------------
+	void ResizingDAT(int reach)
+	{
+		int Old = m_dat.size();
+		if(reach>Old-1)
+		{
+			int New = reach;
+			New |= New >> 1;  New |= New >> 2;  New |= New >> 4;  New |= New >> 8;  New |= New >> 16;
+			New = (New < 0) ? 1 :  New + 1;
 
-			for(int m=i;m<str.length();m++)
+			cout<<"resizing array..."<<Old<<" to "<<New<<endl;
+			m_dat.resize(New);
+
+			for(int m=Old;m<m_dat.size();m++)
 			{
-				Node *node = new Node;
-
-				node->content=wsTemp;
-				node->bIsCase=(m==i);
-
-				m_ReInsert.push_back(*node); //insert all relative node from input string,  ex: insert "hello", "he" already exist, so push_back "hel"(mid)、"hell"(mid)、"hello"(end)
-				wsTemp=wsTemp.substr(0,wsTemp.size()-1);
-
-				delete node;
-			}
-			break;
+				m_dat[m].base=0;
+				m_dat[m].check=0;
+				m_dat[m].failId=0;
+				m_dat[m].failFrom=0;
+				m_dat[m].content=L"";
+			}  m_dat[0].check=-1;
 		}
 	}
-
-	sort(m_ReInsert.begin(), m_ReInsert.end(),CompareNodeLen());
-	int nMinLen=m_ReInsert.front().content.length();
-	int nMaxLen=m_ReInsert.back().content.length();
-
-	sort(m_ReInsert.begin(), m_ReInsert.end(),CompareNodeReverse());
-	vector<Node> m_ReInsertEachLen;
-	for(int len=nMinLen;len<=nMaxLen;len++)
+	//------------------------------------------------
+	DAT_ACM()
 	{
-		m_ReInsertEachLen.clear();
+		ResizingDAT(65530);
+	}
+	//------------------------------------------------
+	int Search(const wstring& str, bool bFindNode = false) //return id or -1 
+	{
+		int base=str[0]+abs(m_dat[0].base);
+		int base_pre=0;
 
-		for(int j=0;j<m_ReInsert.size();j++)
+		for(int j=0;j<str.length();j++)
 		{
-			if(m_ReInsert[j].content.length()==len)
+			if(base>m_dat.size()-1)
+				return -1;
+
+			if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
 			{
-				m_ReInsertEachLen.push_back(m_ReInsert[j]);
-				m_ReInsert[j].content=L"";
+				if(j==str.length()-1)
+				{
+					if(m_dat[base].base<0 || bFindNode) 
+						return base;
+					else
+						return -1;
+				}
+
+				base_pre = base;
+				base=abs(m_dat[base].base)+str[j+1];
 			}
-			else if(m_ReInsert[j].content==L"" && m_ReInsertEachLen.size()>0)
-			{
-				InsertBase(m_ReInsertEachLen); //group insert all the nodes that have same "check"
-				m_ReInsertEachLen.clear();
-			}
-		}
-
-		if(m_ReInsertEachLen.size()>0)
-		{
-			InsertBase(m_ReInsertEachLen);     //group insert all the nodes that have same "check"
-			m_ReInsertEachLen.clear();
+			else
+				return -1;
 		}
 	}
+	//------------------------------------------------
+	//-----------------------------------------
+	//int BinarySearch(int l,vector<Node>& vNode,int r,wstring &str,bool bStart=false) // = bisection method, recusive function
+	//{
+	//	static	bool IsDeadEnd;
+	//	static	bool IsBothDeadEnd;
 
-	m_ReInsertEachLen.clear();
-}
-//-----------------------------------------
-void InsertGroup(vector<Node> &vNodes,int len)//for group insert from dictionary, vNodes have same length
-{
-	wstring sTarget = vNodes.back().content.substr(0,len-1);
-	vector<Node> vNodesInserting;
-	vNodes.back().content.substr(0,len-1);
-	while(vNodes.size()>0 && vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same "check"
+	//	if(bStart)
+	//	{
+	//		IsDeadEnd = false;
+	//		IsBothDeadEnd = false;
+	//	}
+
+	//	int mid;
+	//	int len = str.length();
+	//	if(r>l)
+	//	{
+	//		mid=floor((float)(l+r)/2);
+
+	//		if(IsBothDeadEnd)
+	//			return mid;
+
+	//		if(IsDeadEnd)
+	//		{
+	//			if(l != r)
+	//			{
+	//				if(mid==vNode.size()-1)
+	//					return mid;
+
+	//				mid = r;
+
+	//				IsBothDeadEnd=true;
+	//			}
+	//		}
+
+	//		if(mid == l || mid == r) 
+	//			IsDeadEnd = true;
+
+	//		wstring temp = vNode[mid].content;
+
+	//		if(temp.length()<len)
+	//			return BinarySearch(l,vNode,mid,str);
+
+	//		if(temp.length()>len)
+	//			return BinarySearch(mid,vNode,r,str);
+
+	//		for(int i=0;i<len;i++)
+	//		{
+	//			if(temp[i]>str[i])
+	//				return BinarySearch(l,vNode,mid,str);
+
+	//			if(temp[i]<str[i])
+	//				return BinarySearch(mid,vNode,r,str);
+
+	//			if(i == len-1)
+	//				return -mid; //negative = find exact word
+	//		}
+	//	}
+	//}
+	//-----------------------------------------
+	void InsertSingle(wstring str)// for single insert
 	{
-		vNodesInserting.push_back(vNodes.back());
-		vNodes.pop_back();
-	}
-	InsertBase(vNodesInserting);//insert all nodes that have the same "check"
-}
-//-----------------------------------------
-int main()
-{
-	string dicPath = "D:\\Dictionary.txt";
-	cout<<"Please check dictionary path: "<<dicPath<<endl;  
-	system("pause");
+		int id = Search(str);
 
-	//define
-	locale::global(locale(""));	
-	wifstream stream(dicPath);
-	stream.imbue(locale(locale::empty(), new codecvt_utf8<wchar_t>));
-	int countline = count(istreambuf_iterator<char>(ifstream(dicPath)), istreambuf_iterator<char>(), '\n');
-	vector<wstring> vWords; // collect words from dictionary
-	vector<wstring>::iterator itws;
-	vector<Node>::iterator itnd;
-	int maxLen = INT_MIN;
+		if(id>0)//mid node or case
+			return;
 
-	ResizingDAT(65530);//init to unicode size
-	vWords.resize(countline+1);// resizing to possible space needed
-
-	itws = vWords.begin();
-	wstring line;
-	while (getline(stream, line))
-	{
-		int len = line.length();
-
-		if(len==0)
-			continue;
-
-		if(len>maxLen)
-			maxLen = len;
-
-		transform(line.begin(), line.end(), line.begin(), ::towlower);
-		*itws++=line; // collect words from dictionary
-	}
-
-	for(int i=vWords.size()-1;i>=0;i--) // resizing to exact space
-	{
-		if(vWords[i].length()!=0)
+		for(int i=0;i<m_dat.size();i++)
 		{
-			vWords.resize(i+1);
-			break;
-		}
-	}
+			m_dat[i].base=0;
+			m_dat[i].check=0;
+			m_dat[i].failId=0;
+			m_dat[i].failFrom=0;
+			m_dat[i].content=L"";
+		}  m_dat[0].check=-1;
 
-	sort(vWords.begin(), vWords.end(),CompareStringLenReverse());//sorting as reverse length order(inserting order: the shorter the prior, so pop-back the shortest for vector efficiency)
 
-
-	//group insert every words from dictionay to double-array trie (faster then insert one-by-one)
-	for(int k=1; k<=maxLen; k++) //start from 1 not minLen, because middle node always start from length 1
-	{
-		cout<<"constructing trie, remaining words: "<<vWords.size()<<endl;
-
-		vector<Node> vNodes;
-
-		int count = vWords.size()-1;
-		for(int i=count;i>=0;i--)
+		for(int k=1;k<str.length()+1;k++)
 		{
-			bool bIsCase = (vWords[i].length()==k);
-
 			Node node = {
-				vWords[i].substr(0,k),
-				bIsCase,    // "Node.bIsCase" indicate whether string is a completely word or a middle node
+				str.substr(0,k),
+				false, 
 			};
+			m_SortedDic.push_back(node);
+		}m_SortedDic.back().bIsWord=true;
 
-			vNodes.push_back(node);
+		sort(m_SortedDic.begin(), m_SortedDic.end(),CompareNodeReverse());
+		
+		m_SortedDic.erase( unique( m_SortedDic.begin(), m_SortedDic.end() ), m_SortedDic.end() );
 
-			if(bIsCase)
-				vWords.pop_back();
+		//wofstream  myfile;
+		//myfile.open("D:\\MyLog.txt", fstream::app);
+		//wstring_convert<codecvt_utf8<wchar_t>> myconv;
+		//myfile<<endl;
+		//myfile<<"----"<<str<<endl;
+		//for(int i=0;i<m_SortedDic.size();i++)
+		//{
+		//	myfile<<"\t"<<m_SortedDic[i].content<<"\t";
+		//	myfile<<m_SortedDic[i].bIsWord<<"\n";
+		//}
+		//myfile<<endl;
+		//myfile.close();
+
+		vector<Node> m_SortedDic_Copy(m_SortedDic);
+
+		while(m_SortedDic_Copy.size() != 0)
+			InsertGroup(m_SortedDic_Copy);
+	}
+	//------------------------------------------------
+	void InsertGroup(vector<Node> &vNodes)
+	{
+		int len = vNodes.back().content.length();
+		wstring sTarget = vNodes.back().content.substr(0,len-1);
+		
+		vector<Node> vNodesInsert;
+		while(
+			vNodes.size()>0 && 
+			vNodes.back().content.length() == len && 
+			vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same "check"
+		{
+			vNodesInsert.push_back(vNodes.back());
+			vNodes.pop_back();
 		}
 
-		//remove same strings, leave "bIsCase" as true if has
-		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
-		for(itnd=vNodes.begin() ; itnd!=vNodes.end()-1 ; itnd++)
+		wstring ws = vNodesInsert[0].content;   ws.pop_back();
+		int nTarget = Search(ws,true);
+
+		int *ids = new int[vNodesInsert.size()]; 
+		for(int i=0;i<vNodesInsert.size();i++)
+			ids[i] = vNodesInsert[i].content.back();
+		
+		for(int k=1;k<m_dat.size();k+=rand()/100+1)//if k=1 not fit, then random move forward to fit
 		{
-			if((itnd+1)->content==itnd->content)
+			int i=0;
+			for(;i<vNodesInsert.size();i++) //try to fit vNodesInsert one by one
 			{
-				(itnd)->content=L"";
-				(itnd+1)->bIsCase=((itnd+1)->bIsCase!=itnd->bIsCase);
+				ResizingDAT(k+ids[i]);
+				if(m_dat[k+ids[i]].content.length()!=0)
+					break;        //not fit, continue loop
+			}
+			if(i!=vNodesInsert.size())  //not fit, continue loop
+				continue;
+
+			//fit ok, base is k
+			if(m_dat[nTarget].base<0)   //if is end char
+				m_dat[nTarget].base=-k;
+			else
+				m_dat[nTarget].base=k;
+
+			for(int n=0;n<vNodesInsert.size();n++) //inserting
+			{
+				int id = k+ids[n];
+
+				m_dat[id].check=nTarget;
+				m_dat[id].content=vNodesInsert[n].content;
+
+				wstring temp = vNodesInsert[n].content;
+
+				m_dat[id].failId=0;
+				if(temp.length()>0)
+				{
+					for(int i=1;i<temp.length();i++)
+					{
+						for(int j=temp.length()-i;j>0;j--)
+						{
+							int failId = Search(temp.substr(i,j),true);  //ex:"hello"    temp.substr(i,j) -->  "ello","ell","el","e","llo","lo", ...
+							if(failId>0)
+							{
+								if(m_dat[id].failId == 0) //about == 0, if found node, only assing longest length if there's no exact word, ex:"ello" 
+								{
+									m_dat[id].failId = failId;
+									m_dat[id].failFrom = i;
+								}
+
+								if(m_dat[failId].base<0) // assing longest exact word if found
+								{
+									m_dat[id].failId = failId;
+									break;
+								}
+							}
+						}
+						if(m_dat[id].failId>0) // only assign fail case that is closest to first char, ex: "e..."
+							break;
+					}
+				}
+
+				if(vNodesInsert[n].bIsWord)
+					m_dat[id].base=-id;
+				else
+					m_dat[id].base=id;
+			}
+			break;
+		}
+		delete ids;
+	}
+	//------------------------------------------------
+	void AddDicBase(vector<wstring> vWords)
+	{
+		sort( vWords.begin(), vWords.end() );
+		vWords.erase( unique( vWords.begin(), vWords.end() ), vWords.end() );
+
+		sort(vWords.begin(), vWords.end(),CompareStringLenReverse());//sorting as reverse length order(inserting order: the shorter the prior, so pop-back the shortest for vector efficiency)
+		int maxLen = vWords.front().size();
+
+		//group insert every words from dictionay to double-array trie (faster then insert one-by-one)
+		vector<Node> vNodes;
+		for(int k=1; k<=maxLen; k++) //From from 1 not minLen, because middle node always From from length 1
+		{
+			//cout<<"constructing trie, remaining words: "<<vWords.size()<<endl;
+			int count = vWords.size()-1;
+			for(int i=count;i>=0;i--)
+			{
+				bool bIsWord = (vWords[i].length()==k);
+
+				Node node = {
+					vWords[i].substr(0,k),
+					bIsWord,    // "Node.bIsWord" indicate whether string is a completely word or a middle node
+				};
+
+				vNodes.push_back(node);
+
+				if(bIsWord)
+					vWords.pop_back();
 			}
 		}
-
+		
 		//resizing to exact space
-		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
 		for(int i=vNodes.size()-1;i>=0;i--)
 		{
 			if(vNodes[i].content!=L"")
@@ -396,118 +445,292 @@ int main()
 				break;
 			}
 		}
+		
+		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
 
-		while(vNodes.size() != 0) //group insert all the nodes that have same target id
-			InsertGroup(vNodes,k);
-
-		vNodes.clear();
+		m_SortedDic = vNodes;
+		
+		while(vNodes.size() != 0) 
+			InsertGroup(vNodes);
 	}
-	//print();
-
-	wstring newWord; //insert word
-	wstring input;   //input for filter, will replaced as output
-	wstring inputL;  //lower case of "input"
-	while(true)
+	//------------------------------------------------
+	void AddDicFromFile(string dicPath)
 	{
+		//define
+		locale::global(locale(""));	
+		wifstream stream(dicPath);
+		stream.imbue(locale(locale::empty(), new codecvt_utf8<wchar_t>));
+		int countline = count(istreambuf_iterator<char>(ifstream(dicPath)), istreambuf_iterator<char>(), '\n');
+		vector<wstring> vWords; // collect words from dictionary
+		vector<wstring>::iterator itws;
+
+		vWords.resize(countline+1);// resizing to possible space needed
+
+		itws = vWords.begin();
+		wstring line;
+		while (getline(stream, line))
+		{
+			int len = line.length();
+
+			if(len==0)
+				continue;
+
+			*itws++=line; // collect words from dictionary
+		}
+
+		for(int i=vWords.size()-1;i>=0;i--) // resizing to exact space
+		{
+			if(vWords[i].length()!=0)
+			{
+				vWords.resize(i+1);
+				break;
+			}
+		}
+
+		AddDicBase(vWords);
+	}
+	//------------------------------------------------
+	void AddNewWord()
+	{
+		wstring newWord; //insert word
 		cout<<endl<<"請輸入新增字囊"<<endl;
 		getline(wcin, newWord);
 		if(newWord.length()>0) 
-		{
-			transform(newWord.begin(), newWord.end(), newWord.begin(), ::towlower);
 			InsertSingle(newWord);
+	}
+	//------------------------------------------------
+	void FilterDialog(wstring input=L"",wstring example=L"")
+	{
+		wstring in_cpy; 
+
+		if(input==L"")
+		{
+			cout<<endl<<"請輸入過濾對話"<<endl;
+			getline(wcin, input);
 		}
 
-
-		cout<<endl<<"請輸入過濾對話"<<endl;
-		getline(wcin, input);
 		int searchTime=0; 
 		if(input.length()>0)
 		{
-			//timer start
-			LARGE_INTEGER nFreq,nBeginTime,nEndTime;
-			QueryPerformanceFrequency(&nFreq);
-			QueryPerformanceCounter(&nBeginTime);
-
-			inputL = input;
-			transform(inputL.begin(), inputL.end(), inputL.begin(), ::towlower);
-
-			int base = inputL[0]+abs(m_dat[0].base);
+			in_cpy = input;
+			//-----------------------
+			//-----------------------
+			//-----------------------
+			int base = in_cpy[0]+abs(m_dat[0].base);
 			int base_pre = 0;
-			int start = 0;
+			int From = 0;
+			int To=1;
 			int failId = 0;
-			
-			for(int n = 0; n < inputL.length();)
-			{
-				if(base>m_dat.size()-1)
-					break;
-				
-				int nMatchLen=-1;
-				while(base_pre ==m_dat[base].check  &&  m_dat[base].content.length()>0   &&  inputL[n] == m_dat[base].content.back()) //search trie
-				{
-					searchTime++;
+			int nMatchLen=-1;
+			bool bTestOK=true;
+			DAT dat_now;
+			DAT dat_fail;
 
+			while(true)
+			{
+				//if(base>m_dat.size()-1)
+				//	break;
+				//wstring test1 = in_cpy.substr(From,To-From);
+				//wstring test2 =  m_dat[base].content;
+
+				while(in_cpy.substr(From,To-From) == m_dat[base].content) //search trie
+				{
 					if(m_dat[base].base<0)
-					{
 						nMatchLen = m_dat[base].content.length();
-						break;
-					}
 
 					base_pre = base;
 
-					if(inputL.length()-1 < n+1)
+					if(To>=in_cpy.length())
+					{
+						To++;
 						break;
+					}
 
-					base=abs(m_dat[base].base)+inputL[n+1];
-					n++;
+					base=abs(m_dat[base].base)+in_cpy[To];
+					To++;
+
+					//test1 = in_cpy.substr(From,To-From);
+					//test2 =  m_dat[base].content;
 				}
-				searchTime++;
-				//----------------- here: inputL[n]       is the char that terminate current trie search  ex: hell"z" 
-				//----------------- here: inputL[start]   is the current first char(a root-child),        ex: "h"ello
-				//----------------- here: m_dat[base_pre] is the deepest node that can reach before terminate  ex: hel"l"
+
+				DAT dat_char = m_dat[in_cpy[From]+abs(m_dat[0].base)];
+				if(To-From ==1)
+					if( dat_char.base <0 && dat_char.content.length()==1 )
+						nMatchLen = 1;
 				
 				//replace if have found
 				if(nMatchLen>0)
 				{
-					input.replace(start, nMatchLen, wstring(nMatchLen, L'*'));
-					if(input.length()==start+nMatchLen) // //end
+					input.replace(From, nMatchLen, wstring(nMatchLen, L'*'));
+
+					if(From+nMatchLen == input.length())
 						break;
+
+					nMatchLen=-1;
 				}
 
-
-				if(n+1>inputL.length()-1) //end
-					break;
-
 				failId = m_dat[base_pre].failId;
-				int failStrLen = m_dat[failId].content.length();
-				if(failStrLen==0) //no fail node
+
+				dat_now = m_dat[base_pre];
+				dat_fail =  m_dat[failId];
+
+				if(failId==0) //no fail node
 				{
+					base_pre = 0;
+					From++;
+					To = From+1; //"To" must greater than "From" for "in_cpy.substr(From,To-From)"
 
-					if(base == inputL[n]+abs(m_dat[0].base)) //char inputL[n] not start char, skip it.
-						n++;
-
-					base_pre = 0;			      //start from new char
-					base = inputL[n]+abs(m_dat[0].base); //start from new char
-					start = n;			      //start from new char
+					if(From>=in_cpy.length())
+					{
+						if(example != input && example!=L"")
+							bTestOK = false;
+						break;
+					}
+					else
+					{
+						base = in_cpy[From]+abs(m_dat[0].base); //From from new char
+					}
 				}
 				else //move to fail node
 				{
+					To -= (
+						dat_now.content.length()  - (dat_now.failFrom  + dat_fail.content.length()) 
+						);
 					
-					base_pre = failId;
-					base = abs(m_dat[failId].base)+inputL[n];
-					start += (m_dat[base_pre].content.length()- failStrLen);
-				}
 
+					if(To>in_cpy.length())
+					{
+						while(true) //ending check.  ex: "good to see David" ~~  "David",is word? -> fail to "vid",is word? -> ...
+						{
+							From += dat_now.failFrom;
+							if(dat_fail.base<0)
+							{
+								nMatchLen = dat_fail.content.length();
+								input.replace(From, nMatchLen, wstring(nMatchLen, L'*'));
+
+								if(From+nMatchLen == input.length())
+									break;
+							}
+							if(dat_fail.failId>0)
+							{
+								dat_now = dat_fail;
+								dat_fail = m_dat[dat_fail.failId];
+							}
+							else
+								break;
+						}
+
+						if(example != input && example!=L"")
+							bTestOK = false;
+						break; 
+					}
+
+					From += dat_now.failFrom;
+					if(dat_now.failFrom<1)
+						From++;
+					
+					if(dat_fail.base<0)
+						nMatchLen = dat_fail.content.length();
+
+					base = abs(dat_fail.base)+in_cpy[To-1];
+					base_pre = failId;
+				}
 			}
 
-			cout<<endl<<"搜尋次數:"<<searchTime<<endl;
-			cout<<endl<<"過濾後:"<<endl;
-			wcout<<input<<endl;
+			if(bTestOK)// test ok  OR  no testing now
+			{
+				cout<<endl<<"過濾後:"<<endl;
+				wcout<<input<<endl;
+			}
+			else
+			{
+				cout<<"\n\ntest fail, pls check:"<<endl;
+				wcout<<L"input  : "<<in_cpy  <<endl;
+				wcout<<L"Example: "<<example <<endl;    
+				wcout<<L"DAT    : "<<input   <<endl;
+				system("pause");
 
-			//timer end
-			QueryPerformanceCounter(&nEndTime);
-			double timeT = (double)(nEndTime.QuadPart-nBeginTime.QuadPart)/(double)nFreq.QuadPart;
-			printf("\n耗時:%f\n",timeT);
+				//exa_test->print();
+				//print();//dat_test
+				//InsertSingle(L"test insert"); 
+			}
 		}
+		return;
 	}
-	return 0;
+};
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+DAT_ACM       *dat_test;
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+wstring RandomString(int minLen, int maxLen, wstring charPool)
+{
+	size_t length = rand()%maxLen+minLen;
+	static const wstring alphabet = charPool;
+	static default_random_engine rng( time(nullptr) ) ;
+	static uniform_int_distribution<size_t> distribution( 0, alphabet.size() - 1 ) ;
+	wstring str ;
+	while( str.size() < length ) str += alphabet[ distribution(rng) ] ;
+	return str;
 }
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+void main()
+{
+	//--------------------------------------------- test setting
+	int testWords = 20;
+	int testCount = 1000;
+	int maxWordLen = 5;
+	int maxDialogLen = 30;
+	wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
+	wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
+	//--------------------------------------------- test case From
+	vector<wstring> vWords;
+	for(int i=0;i<testWords;i++)
+		vWords.push_back(RandomString(1,maxWordLen,wordPool));//////////////
+	
+	exa_test = new ExampleFilter();
+	dat_test = new DAT_ACM();
+	
+	exa_test->m_vDictionary = vWords; //default dictionay 
+	dat_test->AddDicBase(vWords);     //default dictionay 
+
+	for(int i=0;i<testCount;i++)
+	{
+		wstring randomDialog = RandomString(1,maxDialogLen,dialogPool);
+
+		wstring wsExample = exa_test->FilterDialog(randomDialog);
+		/*                */dat_test->FilterDialog(randomDialog,wsExample);
+
+		wstring newWord = RandomString(3,maxWordLen,wordPool);//////////////
+		
+		exa_test->m_vDictionary.push_back(newWord);//insert word
+		dat_test->InsertSingle(newWord);           //insert word
+	}
+
+	delete exa_test;
+	delete dat_test;
+	//--------------------------------------------- test case over
+
+
+
+	//--------------------------------------------- main case start
+	string dicPath = "D:\\Dictionary.txt";
+	cout<<"Please check dictionary path: "<<dicPath<<endl;  
+	system("pause");
+
+	DAT_ACM *dat = new DAT_ACM();
+	dat->AddDicFromFile(dicPath);
+
+	while(true)
+	{
+		dat->AddNewWord(); 
+		dat->FilterDialog();
+	}
+}
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
