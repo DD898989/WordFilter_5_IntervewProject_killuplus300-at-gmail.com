@@ -448,11 +448,6 @@ public:
 					base=abs(m_dat[base].base)+in_cpy[To];
 					To++;
 				}
-
-				DAT dat_char = m_dat[in_cpy[From]+abs(m_dat[0].base)];
-				if(To-From ==1)
-					if( dat_char.base <0 && dat_char.content.length()==1 )
-						nMatchLen = 1;
 				
 				//replace if have found
 				if(nMatchLen>0)
