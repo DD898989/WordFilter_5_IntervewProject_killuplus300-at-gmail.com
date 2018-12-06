@@ -51,35 +51,6 @@ class DAT_ACM
 {
 public:
 	//------------------------------------------------
-	void print(wstring ws=L"")   //for debug
-	{
-		wofstream  myfile;
-		myfile.open("D:\\MyLog.txt", fstream::app);
-		wstring_convert<codecvt_utf8<wchar_t>> myconv;
-		if(ws!=L"")
-			myfile<<L"Insert:\t"<<ws<<endl;
-		myfile<<"ID"<<"\t"<<"base"<<"\t"<<"check"<<"\t"<<"failId"<<"\t"<<"failFrom"<<"\t"<<"content"<<endl;
-		for(int i=0;i<m_dat.size();i++)
-		{
-			if(m_dat[i].base!=0 ||
-				m_dat[i].check!=0 ||
-				m_dat[i].failId!=0 ||
-				m_dat[i].failFrom!=0 ||
-				m_dat[i].content.length() !=0 
-				)
-			{
-				myfile<<i<<"\t";
-				myfile<<m_dat[i].base<<"\t";
-				myfile<<m_dat[i].check<<"\t";
-				myfile<<m_dat[i].failId<<"\t";
-				myfile<<m_dat[i].failFrom<<"\t";
-				myfile<<m_dat[i].content<<"\t";
-				myfile<<endl;
-			}
-		}
-		myfile.close();
-	}
-	//------------------------------------------------
 	typedef struct DAT
 	{
 		//int id;  //equal to array index
