@@ -193,7 +193,6 @@ public:
 			else
 				return -1;
 		}
-		return -1;
 	}
 	//------------------------------------------------
 	void InsertSingle(wstring str)// for single insert
