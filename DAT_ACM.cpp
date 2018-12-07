@@ -172,7 +172,7 @@ public:
 	{
 		int id = Search(str);
 
-		if(id>0)//mid node or case
+		if(id>0)//is word?
 			return;
 
 		for(int i=0;i<m_dat.size();i++)
