@@ -447,7 +447,7 @@ public:
 
 					if(From>=in_cpy.length())
 					{
-						if(example != input && example!=L"")
+						if(example!=L""  && example != input)
 							bTestOK = false;
 						break;
 					}
@@ -488,7 +488,7 @@ public:
 								break;
 						}
 
-						if(example != input && example!=L"")
+						if(example!=L""  && example != input)
 							bTestOK = false;
 						break; 
 					}
