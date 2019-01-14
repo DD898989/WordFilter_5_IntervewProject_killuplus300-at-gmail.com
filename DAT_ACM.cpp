@@ -51,6 +51,36 @@ class DAT_ACM
 {
 public:
 	//------------------------------------------------
+	void PrintTrie(wstring ws=L"")   //for debug
+	{
+		wofstream  myfile;
+		myfile.open("D:\\MyLog.txt", fstream::app);
+		wstring_convert<codecvt_utf8<wchar_t>> myconv;
+		myfile<<endl<<endl<<endl;
+		if(ws!=L"")
+			myfile<<L"Insert:\t"<<ws<<endl;
+		myfile<<"ID"<<"\t"<<"base"<<"\t"<<"check"<<"\t"<<"failId"<<"\t"<<"failFrom"<<"\t"<<"content"<<endl;
+		for(int i=0;i<m_dat.size();i++)
+		{
+			if(m_dat[i].base!=0 ||
+				m_dat[i].check!=0 ||
+				m_dat[i].failId!=0 ||
+				m_dat[i].failFrom!=0 ||
+				m_dat[i].content.length() !=0 
+				)
+			{
+				myfile<<i<<"\t";
+				myfile<<m_dat[i].base<<"\t";
+				myfile<<m_dat[i].check<<"\t";
+				myfile<<m_dat[i].failId<<"\t";
+				myfile<<m_dat[i].failFrom<<"\t";
+				myfile<<m_dat[i].content<<"\t";
+				myfile<<endl;
+			}
+		}
+		myfile.close();
+	}
+	//------------------------------------------------
 	typedef struct DAT
 	{
 		//int id;  //equal to array index
@@ -227,6 +257,7 @@ public:
 			ids[i] = vNodesInsert[i].content.back();
 		
 		for(int k=1;k<m_dat.size();k+=rand()/100+1)//if k=1 not fit, then random move forward to fit
+		//for(int k=1;k<m_dat.size();k++)
 		{
 			int i=0;
 			for(;i<vNodesInsert.size();i++) //try to fit vNodesInsert one by one
@@ -543,14 +574,14 @@ wstring RandomString(int minLen, int maxLen, wstring charPool)
 //------------------------------------------------------------------------------------------
 void main()
 {
-	//--------------------------------------------- test setting
+	//--------------------------------------------------------------------------------------------------------- test setting
 	int testWords = 20;
 	int testCount = 1000;
 	int maxWordLen = 5;
 	int maxDialogLen = 30;
 	wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
 	wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
-	//--------------------------------------------- test case start
+	//--------------------------------------------------------------------------------------------------------- test case start
 	vector<wstring> vWords;
 	for(int i=0;i<testWords;i++)
 		vWords.push_back(RandomString(1,maxWordLen,wordPool));//////////////
@@ -560,6 +591,7 @@ void main()
 
 	exa_test->m_vDictionary = vWords; //default dictionay 
 	dat_test->AddDicBase(vWords);     //default dictionay 
+
 
 	for(int i=0;i<testCount;i++)
 	{
@@ -572,14 +604,17 @@ void main()
 		
 		exa_test->m_vDictionary.push_back(newWord);//insert word
 		dat_test->InsertSingle(newWord);           //insert word
+
+		
+		//dat_test->PrintTrie(newWord);
 	}
 
 	delete exa_test;
 	delete dat_test;
-	//--------------------------------------------- test case over
+	//--------------------------------------------------------------------------------------------------------- test case over
 
 
-	//--------------------------------------------- main case start
+	//--------------------------------------------------------------------------------------------------------- main case start
 	string dicPath = "D:\\Dictionary.txt";
 	cout<<"Please check dictionary path: "<<dicPath<<endl;  
 	system("pause");
