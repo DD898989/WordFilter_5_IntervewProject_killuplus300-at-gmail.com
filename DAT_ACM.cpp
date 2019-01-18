@@ -9,13 +9,14 @@
 #include <random>
 using namespace std;
 
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------
+vector<wstring> vAllInsertWords;//for debug
+//------------------------------------------------------------------------------------------------------------------------------------------------
 class ExampleFilter
 {
 public: 
-	//------------------------------------------------
 	//------------------------------------------------
 	vector<wstring> m_vDictionary;
 	//------------------------------------------------
@@ -44,9 +45,7 @@ public:
 	}
 	//------------------------------------------------
 };
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------
 class DAT_ACM
 {
 public:
@@ -86,7 +85,7 @@ public:
 		//int id;  //equal to array index
 
 		int base; 
-		//base<0: whole word,might also be mid node    
+		//base<0: whole word,might also be mid node      for first visible ascii code is 32(space), negative base most <=-33
 		//base>0: mid node   
 		//base=0: empty node
 
@@ -200,10 +199,26 @@ public:
 	//------------------------------------------------
 	void InsertSingle(wstring str)// for single insert
 	{
-		int id = Search(str);
+		int id = Search(str,true);
 
-		if(id>0)//is word?
+
+		if(id>0)
+		{
+			if(m_dat[id].base<0)//is word
+			{
+			}
+			else				//is node
+			{
+				Node node = {str,true};
+				m_SortedDic.push_back(node);
+
+				m_dat[id].base = -m_dat[id].base;
+			}
 			return;
+		}
+
+
+
 
 		for(int i=0;i<m_dat.size();i++)
 		{
@@ -381,7 +396,6 @@ public:
 		vector<wstring>::iterator itws;
 
 		vWords.resize(countline+1);// resizing to possible space needed
-
 		itws = vWords.begin();
 		wstring line;
 		while (getline(stream, line))
@@ -462,7 +476,6 @@ public:
 
 					nMatchLen=-1;
 				}
-
 				failId = m_dat[base_pre].failId;
 
 				DAT dat_now = m_dat[base_pre];
@@ -550,15 +563,23 @@ public:
 				wcout<<L"input  : "<<in_cpy  <<endl;
 				wcout<<L"Example: "<<example <<endl;    
 				wcout<<L"DAT    : "<<input   <<endl;
+
+				
+				
+				wofstream  myfile;
+				myfile.open("D:\\MyLog.txt", fstream::app);
+				for (vector<wstring>::const_iterator i = vAllInsertWords.begin(); i != vAllInsertWords.end(); ++i)
+					myfile << *i << endl;
+				myfile.close();
+
+
 				system("pause");
 			}
 		}
 		return;
 	}
 };
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------
 wstring RandomString(int minLen, int maxLen, wstring charPool)
 {
 	size_t length = rand()%maxLen+minLen;
@@ -569,48 +590,75 @@ wstring RandomString(int minLen, int maxLen, wstring charPool)
 	while( str.size() < length ) str += alphabet[ distribution(rng) ] ;
 	return str;
 }
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------
 void main()
 {
-	//--------------------------------------------------------------------------------------------------------- test setting
-	int testWords = 20;
-	int testCount = 1000;
-	int maxWordLen = 5;
-	int maxDialogLen = 30;
-	wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
-	wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
-	//--------------------------------------------------------------------------------------------------------- test case start
-	vector<wstring> vWords;
-	for(int i=0;i<testWords;i++)
-		vWords.push_back(RandomString(1,maxWordLen,wordPool));//////////////
-	
-	ExampleFilter *exa_test = new ExampleFilter();
-	DAT_ACM       *dat_test = new DAT_ACM();
-
-	exa_test->m_vDictionary = vWords; //default dictionay 
-	dat_test->AddDicBase(vWords);     //default dictionay 
-
-
-	for(int i=0;i<testCount;i++)
+	if(true)
 	{
-		wstring randomDialog = RandomString(1,maxDialogLen,dialogPool);
+		//--------------------------------------------------------------------------------------------------------- test setting
+		int testWords = 20;
+		int testCount = 1000;
+		int maxWordLen = 5;
+		int maxDialogLen = 110;
+		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
+		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
+		//--------------------------------------------------------------------------------------------------------- test case start
+		vector<wstring> vWords;
+		for(int i=0;i<testWords;i++)
+		{
+			wstring temp = RandomString(1,maxWordLen,wordPool);
+			vWords.push_back(temp);//////////////
 
+			vAllInsertWords.push_back(temp);//for debug
+		}
+
+		ExampleFilter *exa_test = new ExampleFilter();
+		DAT_ACM       *dat_test = new DAT_ACM();
+
+		exa_test->m_vDictionary = vWords; //default dictionay 
+		dat_test->AddDicBase(vWords);     //default dictionay 
+
+
+
+
+		for(int i=0;i<testCount;i++)
+		{
+			//cout<<i<<",";
+			wstring randomDialog = RandomString(1,maxDialogLen,dialogPool);
+
+			wstring wsExample = exa_test->FilterDialog(randomDialog);
+			/*                */dat_test->FilterDialog(randomDialog,wsExample);
+
+			wstring newWord = RandomString(3,maxWordLen,wordPool);//////////////
+
+			exa_test->m_vDictionary.push_back(newWord);//insert word
+			dat_test->InsertSingle(newWord);           //insert word
+			vAllInsertWords.push_back(newWord);//for debug
+		}
+		delete exa_test;
+		delete dat_test;
+	}
+	else
+	{
+		ExampleFilter *exa_test = new ExampleFilter();
+		DAT_ACM       *dat_test = new DAT_ACM();
+
+
+		wifstream infile("D:\\MyLog.txt");
+		wstring line;
+		while (getline(infile, line))
+		{
+			exa_test->m_vDictionary.push_back(line);//insert word
+			dat_test->InsertSingle(line);           //insert word
+			//dat_test->PrintTrie(line);//set break point
+		}
+
+		wstring randomDialog = L"xLsddu";
 		wstring wsExample = exa_test->FilterDialog(randomDialog);
 		/*                */dat_test->FilterDialog(randomDialog,wsExample);
-
-		wstring newWord = RandomString(3,maxWordLen,wordPool);//////////////
-		
-		exa_test->m_vDictionary.push_back(newWord);//insert word
-		dat_test->InsertSingle(newWord);           //insert word
-
-		
-		//dat_test->PrintTrie(newWord);
+		delete exa_test;
+		delete dat_test;
 	}
-
-	delete exa_test;
-	delete dat_test;
 	//--------------------------------------------------------------------------------------------------------- test case over
 
 
@@ -628,6 +676,4 @@ void main()
 		dat->FilterDialog();
 	}
 }
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------
