@@ -593,7 +593,7 @@ wstring RandomString(int minLen, int maxLen, wstring charPool)
 //------------------------------------------------------------------------------------------------------------------------------------------------
 void main()
 {
-	if(true)
+	if(true)//TRUE for test,  if test fail, change to FALSE to degug
 	{
 		//--------------------------------------------------------------------------------------------------------- test setting
 		int testWords = 20;
@@ -637,32 +637,34 @@ void main()
 		}
 		delete exa_test;
 		delete dat_test;
+		//--------------------------------------------------------------------------------------------------------- test case over
 	}
 	else
 	{
-		ExampleFilter *exa_test = new ExampleFilter();
-		DAT_ACM       *dat_test = new DAT_ACM();
+		//--------------------------------------------------------------------------------------------------------- debug case start
+		ExampleFilter *exa_debug = new ExampleFilter();
+		DAT_ACM       *dat_debug = new DAT_ACM();
 
 
 		wifstream infile("D:\\MyLog.txt");
 		wstring line;
 		while (getline(infile, line))
 		{
-			exa_test->m_vDictionary.push_back(line);//insert word
-			dat_test->InsertSingle(line);           //insert word
-			//dat_test->PrintTrie(line);//set break point
+			exa_debug->m_vDictionary.push_back(line);//insert word
+			dat_debug->InsertSingle(line);           //insert word
+			dat_debug->PrintTrie(line);//set break point
 		}
 
 		wstring randomDialog = L"xLsddu";
-		wstring wsExample = exa_test->FilterDialog(randomDialog);
-		/*                */dat_test->FilterDialog(randomDialog,wsExample);
-		delete exa_test;
-		delete dat_test;
+		wstring wsExample = exa_debug->FilterDialog(randomDialog);
+		/*                */dat_debug->FilterDialog(randomDialog,wsExample);
+		delete exa_debug;
+		delete dat_debug;
+		//--------------------------------------------------------------------------------------------------------- debug case over
 	}
-	//--------------------------------------------------------------------------------------------------------- test case over
 
 
-	//--------------------------------------------------------------------------------------------------------- main case start
+	//------------------------------------------------------------------------------------------------------------- main case start
 	string dicPath = "D:\\Dictionary.txt";
 	cout<<"Please check dictionary path: "<<dicPath<<endl;  
 	system("pause");
