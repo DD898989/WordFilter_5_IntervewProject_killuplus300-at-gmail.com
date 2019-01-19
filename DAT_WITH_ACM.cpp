@@ -484,8 +484,11 @@ public:
 				if(failId==0) //no fail node
 				{
 					//assing From
-					From++;
-					
+					if(dat_now.content.length()>0)
+						From = To-1;
+					else
+						From++;
+
 					//assing To
 					To = From+1; //"To" must greater than "From" for "in_cpy.substr(From,To-From)"
 
@@ -597,11 +600,11 @@ void main()
 	{
 		//--------------------------------------------------------------------------------------------------------- test setting
 		int testWords = 20;
-		int testCount = 1000;
+		int testCount = 10000;
 		int maxWordLen = 5;
 		int maxDialogLen = 110;
-		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
-		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
+		wstring dialogPool = L"@abcdefghijklmnop";
+		wstring wordPool = L"abcdefghijklmnop";
 		//--------------------------------------------------------------------------------------------------------- test case start
 		vector<wstring> vWords;
 		for(int i=0;i<testWords;i++)
