@@ -8,11 +8,6 @@
 #include <fstream>
 #include <random>
 using namespace std;
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------------------------
-vector<wstring> vAllInsertWords;//for debug
 //------------------------------------------------------------------------------------------------------------------------------------------------
 class ExampleFilter
 {
@@ -50,6 +45,29 @@ class DAT_ACM
 {
 public:
 	//------------------------------------------------
+	typedef struct DAT
+	{
+		//int id;  //equal to array index
+
+
+		wstring content;
+
+
+		int base; 
+		//base<0: whole word,might also be mid node      negative base most <=-33 because first visible ascii code is 32(space)
+		//base>0: mid node   
+		//base=0: empty node
+
+		int parent;
+		//parent=-1: root, len=0      
+		//parent= 0: root-child, len=1    or   empty node   
+		//parent> 0: can't define
+		
+		vector<int> children_direct;
+	};
+	//------------------------------------------------
+	vector<DAT>  m_dat;
+	//------------------------------------------------
 	void PrintTrie(wstring ws=L"")   //for debug
 	{
 		wofstream  myfile;
@@ -59,45 +77,31 @@ public:
 		if(ws!=L"")
 			myfile<<L"Insert:\t"<<ws<<endl;
 
-		myfile<<"ID"<<"\t"<<"base"<<"\t"<<"check"<<"\t"<<"content"<<"\t"<<"childIDs"<<endl;
+		myfile
+			<<"ID"<<"\t"
+			<<"base"<<"\t"
+			<<"parent"<<"\t"
+			<<"content"<<"\t"
+			<<"children_direct"
+			<<endl;
 
 		for(int i=0;i<m_dat.size();i++)
 		{
 			if(m_dat[i].base!=0 ||
-				m_dat[i].check!=0 ||
+				m_dat[i].parent!=0 ||
 				m_dat[i].content.length() !=0 
 				)
 			{
 				myfile<<i<<"\t";
 				myfile<<m_dat[i].base<<"\t";
-				myfile<<m_dat[i].check<<"\t";
+				myfile<<m_dat[i].parent<<"\t";
 				myfile<<m_dat[i].content<<"\t";
-				for (vector<int>::iterator it=m_dat[i].childIDs.begin(); it != m_dat[i].childIDs.end(); ++it)
-					myfile<<*it<<",";
+				for (vector<int>::iterator it=m_dat[i].children_direct.begin(); it != m_dat[i].children_direct.end(); ++it){myfile<<*it<<",";}	myfile<<"\t";
 				myfile<<endl;
 			}
 		}
 		myfile.close();
 	}
-	//------------------------------------------------
-	typedef struct DAT
-	{
-		//int id;  //equal to array index
-
-		int base; 
-		//base<0: whole word,might also be mid node      for first visible ascii code is 32(space), negative base most <=-33
-		//base>0: mid node   
-		//base=0: empty node
-
-		int check;
-		//check=-1: root, len=0      
-		//check= 0: root-child, len=1    or   empty node   
-		//check> 0: can't define
-		
-		vector<int> childIDs;
-
-		wstring content;
-	};
 	//------------------------------------------------
 	typedef struct Node
 	{
@@ -109,9 +113,6 @@ public:
 			return ( a.bIsWord==bIsWord && a.content ==content);
 		}
 	};
-	//------------------------------------------------
-	vector<DAT>  m_dat;
-	vector<Node> m_ReInsert;
 	//------------------------------------------------
 	struct CompareNodeReverse
 	{
@@ -150,18 +151,18 @@ public:
 			for(int m=Old;m<m_dat.size();m++)
 			{
 				m_dat[m].base=0;
-				m_dat[m].check=0;
+				m_dat[m].parent=0;
 				m_dat[m].content=L"";
-			}  m_dat[0].check=-1;
+			}  m_dat[0].parent=-1;
 		}
 	}
 	//------------------------------------------------
 	DAT_ACM()
 	{
-		ResizingDAT(65530);
+		ResizingDAT(0XFFFF);//0XFFFF=65535
 	}
 	//------------------------------------------------
-	int Search(const wstring& str, bool bFindNode = false, bool bFindClosestParent = false) //return id or -1 
+	int Search(const wstring& str, bool bFindNode = false, bool bFindNearestParent = false) //return id or -1 
 	{
 		int base=str[0]+abs(m_dat[0].base);
 		int base_pre=0;
@@ -169,59 +170,50 @@ public:
 		for(int j=0;j<str.length();j++)
 		{
 			if(base>m_dat.size()-1)
-				if(bFindClosestParent)
-					return base_pre;
-				else
-					return -1;
+				return (bFindNearestParent) ? base_pre : -1;
 
-			if(base_pre ==m_dat[base].check  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
+			if(base_pre ==m_dat[base].parent  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
 			{
 				if(j==str.length()-1)
 				{
 					if(m_dat[base].base<0 || bFindNode) 
 						return base;
 					else
-						if(bFindClosestParent)
-							return base;
-						else
-							return -1;
+						return (bFindNearestParent) ? base_pre : -1;
 				}
 
 				base_pre = base;
 				base=abs(m_dat[base].base)+str[j+1];
 			}
 			else
-				if(bFindClosestParent)
-					return base_pre;
-				else
-					return -1;
+				return (bFindNearestParent) ? base_pre : -1;
 		}
 
-		return 0;// str length = 0
+		return base_pre;// str length = 0
 	}
 	//------------------------------------------------
 	void InsertSingle(wstring str)// for single insert
 	{
 		int id = Search(str,true,true);
+		vector<Node>  vReInsert;
 
-		if(m_dat[id].base<0 && str.length()==m_dat[id].content.length() )//is word
+		if(id>0)
 		{
-			return;
+			if(m_dat[id].content.length() == str.length())
+		{
+				if(m_dat[id].base<0)
+				{
+					return;//is word
 		}
-		else if(m_dat[id].content == str) //is node
+				else
 		{
+					//assign: base
 			m_dat[id].base = -m_dat[id].base;
 			return;
 		}
-		else
-		{
-			//id = closest parent
+			}
 		}
 		
-
-		m_ReInsert.clear();
-
-
 		int startFrom = m_dat[id].content.length();
 		for(int k=1+startFrom;k<str.length()+1;k++)
 		{
@@ -229,46 +221,44 @@ public:
 				str.substr(0,k),
 				false, 
 			};
-			m_ReInsert.push_back(node);
-		}m_ReInsert.back().bIsWord=true;
+			vReInsert.push_back(node);
+		}vReInsert.back().bIsWord=true;
 
+		RecursiveMove(id,false,vReInsert);
 
-		RecursiveMove(id,false);
-		
-		
-		sort(m_ReInsert.begin(), m_ReInsert.end(),CompareNodeReverse());
+		//assign: all
+		InsertGroup(vReInsert);
 
-		while(m_ReInsert.size() != 0)
-		{
-			InsertGroup(m_ReInsert);
-		}
 	}
 	//------------------------------------------------
-	void RecursiveMove(int id, bool moveItself)
+	void RecursiveMove(int id, bool moveSelf,vector<Node>  &vReInsert)
 	{
-		for (vector<int>::iterator it=m_dat[id].childIDs.begin(); it != m_dat[id].childIDs.end(); ++it)
+		for (vector<int>::iterator it=m_dat[id].children_direct.begin(); it != m_dat[id].children_direct.end(); ++it)
 		{
-			RecursiveMove(*it,true);
+			RecursiveMove(*it,true,vReInsert);
 		}
 
-		
-		if(moveItself)
+		if(moveSelf)
 		{
 			Node *node = new Node;
 			node->content=m_dat[id].content;
 			node->bIsWord=(m_dat[id].base<0);
-			m_ReInsert.push_back(*node);
+			vReInsert.push_back(*node);
 
 
 			m_dat[id].base=0;
-			m_dat[id].check=0;
-			m_dat[id].childIDs.clear();
+			m_dat[id].parent=0;
+			m_dat[id].children_direct.clear();
 			m_dat[id].content=L"";
 		}
 	}
 	//------------------------------------------------
 	void InsertGroup(vector<Node> &vNodes)
 	{
+		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
+
+		while(vNodes.size() != 0)
+		{
 		int len = vNodes.back().content.length();
 		wstring sTarget = vNodes.back().content.substr(0,len-1);
 		
@@ -276,7 +266,7 @@ public:
 		while(
 			vNodes.size()>0 && 
 			vNodes.back().content.length() == len && 
-			vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same "check"
+				vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same "parent"
 		{
 			vNodesInsert.push_back(vNodes.back());
 			vNodes.pop_back();
@@ -285,59 +275,58 @@ public:
 		wstring ws = vNodesInsert[0].content;   ws.pop_back();
 		int nTarget = Search(ws,true);
 
-		int *ids = new int[vNodesInsert.size()]; 
+			vector<int> ids;
 		for(int i=0;i<vNodesInsert.size();i++)
-			ids[i] = vNodesInsert[i].content.back();
+				ids.push_back(vNodesInsert[i].content.back());
 		
-		for(int k=1;k<m_dat.size();k+=rand()/100+1)//if k=1 not fit, then random move forward to fit
-		//for(int k=1;k<m_dat.size();k++)
+
+			int k=1;
+			while(true)
 		{
 			int i=0;
 			for(;i<vNodesInsert.size();i++) //try to fit vNodesInsert one by one
 			{
 				ResizingDAT(k+ids[i]);
 				if(m_dat[k+ids[i]].content.length()!=0)
-					break;        //not fit, continue loop
+					{
+						k+=rand()/100+1;//if k=1 not fit, then random move forward to fit
+						break;
+					}
 			}
-			if(i!=vNodesInsert.size())  //not fit, continue loop
-				continue;
+				if(i==vNodesInsert.size())
+					break;
+			}
 
-			//fit ok, base is k
-			if(m_dat[nTarget].base<0)   //if is end char
-				m_dat[nTarget].base=-k;
-			else
-				m_dat[nTarget].base=k;
 
-			m_dat[nTarget].childIDs.clear();
+
+			m_dat[nTarget].children_direct.clear();
+
+			//assign: base
+			m_dat[nTarget].base = (m_dat[nTarget].base<0) ? -k : k;
 
 			for(int n=0;n<vNodesInsert.size();n++) //inserting
 			{
 				int id = k+ids[n];
 
-				m_dat[id].check=nTarget;
+				//assign: parent
+				m_dat[id].parent=nTarget;
+
+				//assign: content
 				m_dat[id].content=vNodesInsert[n].content;
 
-
-
-				if (find(m_dat[nTarget].childIDs.begin(), m_dat[nTarget].childIDs.end(), id) != m_dat[nTarget].childIDs.end() )
+				//assign: children_direct
+				if(nTarget>=0)
 				{
-				}
-				else
-				{
-					m_dat[nTarget].childIDs.push_back(id);
+					vector<int> temp = m_dat[nTarget].children_direct;
+					if (find(temp.begin(), temp.end(), id) == temp.end())
+						m_dat[nTarget].children_direct.push_back(id);
 				}
 
 
-
-
-				if(vNodesInsert[n].bIsWord)
-					m_dat[id].base=-id;
-				else
-					m_dat[id].base=id;
+				//assign: base
+				m_dat[id].base = (vNodesInsert[n].bIsWord) ? -id : id;
 			}
-			break;
 		}
-		delete ids;
 	}
 	//------------------------------------------------
 	void AddDicBase(vector<wstring> vWords)
@@ -380,11 +369,7 @@ public:
 			}
 		}
 		
-		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
-		
-		
-		while(vNodes.size() != 0) 
-			InsertGroup(vNodes);
+		InsertGroup(vNodes);
 	}
 	//------------------------------------------------
 	void AddDicFromFile(string dicPath)
@@ -431,7 +416,7 @@ public:
 			InsertSingle(newWord);
 	}
 	//------------------------------------------------
-	void FilterDialog(wstring input=L"",wstring example=L"")
+	void FilterDialog(wstring input=L"",wstring example=L"",vector<wstring> m_vDictionary = vector<wstring>())
 	{
 		if(input==L"")
 		{
@@ -510,19 +495,21 @@ public:
 				wcout<<L"DAT    : "<<input   <<endl;
 
 				
-				
+				if(m_vDictionary.size()>0)
+				{
 				wofstream  myfile;
 				myfile.open("D:\\MyLog.txt", fstream::app);
-				for (vector<wstring>::const_iterator i = vAllInsertWords.begin(); i != vAllInsertWords.end(); ++i)
+					for (vector<wstring>::const_iterator i = m_vDictionary.begin(); i != m_vDictionary.end(); ++i)
 					myfile << *i << endl;
 				myfile.close();
-
+				}
 
 				system("pause");
 			}
 		}
 		return;
 	}
+	//------------------------------------------------
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------
 wstring RandomString(int minLen, int maxLen, wstring charPool)
@@ -542,19 +529,17 @@ void main()
 	{
 		//--------------------------------------------------------------------------------------------------------- test setting
 		int testWords = 200;
-		int testCount = 1000;
-		int maxWordLen = 5;
+		int testCount = 10000;
+		int maxWordLen = 8;
 		int maxDialogLen = 110;
-		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
-		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
+		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP";
+		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP";
 		//--------------------------------------------------------------------------------------------------------- test case start
 		vector<wstring> vWords;
 		for(int i=0;i<testWords;i++)
 		{
 			wstring temp = RandomString(1,maxWordLen,wordPool);
 			vWords.push_back(temp);//////////////
-
-			vAllInsertWords.push_back(temp);//for debug
 		}
 
 		ExampleFilter *exa_test = new ExampleFilter();
@@ -562,7 +547,6 @@ void main()
 
 		exa_test->m_vDictionary = vWords; //default dictionay 
 		dat_test->AddDicBase(vWords);     //default dictionay 
-		dat_test->PrintTrie();
 
 		for(int i=0;i<testCount;i++)
 		{
@@ -570,13 +554,12 @@ void main()
 			wstring randomDialog = RandomString(1,maxDialogLen,dialogPool);
 
 			wstring wsExample = exa_test->FilterDialog(randomDialog);
-			/*                */dat_test->FilterDialog(randomDialog,wsExample);
+			/*                */dat_test->FilterDialog(randomDialog,wsExample,exa_test->m_vDictionary);
 
 			wstring newWord = RandomString(3,maxWordLen,wordPool);//////////////
 
 			exa_test->m_vDictionary.push_back(newWord);//insert word
 			dat_test->InsertSingle(newWord);           //insert word
-			vAllInsertWords.push_back(newWord);//for debug
 		}
 		delete exa_test;
 		delete dat_test;
@@ -595,10 +578,10 @@ void main()
 		{
 			exa_debug->m_vDictionary.push_back(line);//insert word
 			dat_debug->InsertSingle(line);           //insert word
-			dat_debug->PrintTrie(line);//set break point
+			//dat_debug->PrintTrie(line);//set break point
 		}
 
-		wstring randomDialog = L"xLsddu";
+		wstring randomDialog = L"O";
 		wstring wsExample = exa_debug->FilterDialog(randomDialog);
 		/*                */dat_debug->FilterDialog(randomDialog,wsExample);
 		delete exa_debug;
@@ -620,5 +603,6 @@ void main()
 		dat->AddNewWord(); 
 		dat->FilterDialog();
 	}
+	delete dat;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------
