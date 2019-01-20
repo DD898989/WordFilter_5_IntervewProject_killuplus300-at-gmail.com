@@ -63,7 +63,7 @@ public:
 		//parent= 0: root-child, len=1    or   empty node   
 		//parent> 0: can't define
 		
-		vector<int> children_direct;
+		vector<int> children;
 	};
 	//------------------------------------------------
 	vector<DAT>  m_dat;
@@ -82,7 +82,7 @@ public:
 			<<"base"<<"\t"
 			<<"parent"<<"\t"
 			<<"content"<<"\t"
-			<<"children_direct"
+			<<"children"
 			<<endl;
 
 		for(int i=0;i<m_dat.size();i++)
@@ -96,7 +96,7 @@ public:
 				myfile<<m_dat[i].base<<"\t";
 				myfile<<m_dat[i].parent<<"\t";
 				myfile<<m_dat[i].content<<"\t";
-				for (vector<int>::iterator it=m_dat[i].children_direct.begin(); it != m_dat[i].children_direct.end(); ++it){myfile<<*it<<",";}	myfile<<"\t";
+				for (vector<int>::iterator it=m_dat[i].children.begin(); it != m_dat[i].children.end(); ++it){myfile<<*it<<",";}	myfile<<"\t";
 				myfile<<endl;
 			}
 		}
@@ -233,7 +233,7 @@ public:
 	//------------------------------------------------
 	void RecursiveMove(int id, bool moveSelf,vector<Node>  &vReInsert)
 	{
-		for (vector<int>::iterator it=m_dat[id].children_direct.begin(); it != m_dat[id].children_direct.end(); ++it)
+		for (vector<int>::iterator it=m_dat[id].children.begin(); it != m_dat[id].children.end(); ++it)
 		{
 			RecursiveMove(*it,true,vReInsert);
 		}
@@ -248,7 +248,7 @@ public:
 
 			m_dat[id].base=0;
 			m_dat[id].parent=0;
-			m_dat[id].children_direct.clear();
+			m_dat[id].children.clear();
 			m_dat[id].content=L"";
 		}
 	}
@@ -299,7 +299,7 @@ public:
 
 
 
-			m_dat[nTarget].children_direct.clear();
+			m_dat[nTarget].children.clear();
 
 			//assign: base
 			m_dat[nTarget].base = (m_dat[nTarget].base<0) ? -k : k;
@@ -314,12 +314,12 @@ public:
 				//assign: content
 				m_dat[id].content=vNodesInsert[n].content;
 
-				//assign: children_direct
+				//assign: children
 				if(nTarget>=0)
 				{
-					vector<int> temp = m_dat[nTarget].children_direct;
+					vector<int> temp = m_dat[nTarget].children;
 					if (find(temp.begin(), temp.end(), id) == temp.end())
-						m_dat[nTarget].children_direct.push_back(id);
+						m_dat[nTarget].children.push_back(id);
 				}
 
 
