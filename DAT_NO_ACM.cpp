@@ -240,8 +240,6 @@ public:
 
 		while(m_ReInsert.size() != 0)
 		{
-			//if(m_ReInsert.back().content.length()==0)
-			//	int uuuuu=0;
 			InsertGroup(m_ReInsert);
 		}
 	}
