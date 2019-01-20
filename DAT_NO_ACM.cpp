@@ -108,6 +108,9 @@ public:
 		wstring content;
 		bool bIsWord;
 
+        Node(wstring ws, bool b) : content(ws), bIsWord(b) { }
+		Node(){}
+
 		bool operator==(const Node& a) const
 		{
 			return ( a.bIsWord==bIsWord && a.content ==content);
@@ -216,14 +219,9 @@ public:
 		
 		int startFrom = m_dat[id].content.length();
 		for(int k=1+startFrom;k<str.length()+1;k++)
-		{
-			Node node = {
-				str.substr(0,k),
-				false, 
-			};
-			vReInsert.push_back(node);
-		}vReInsert.back().bIsWord=true;
-
+			vReInsert.push_back(Node(str.substr(0,k),false));
+		vReInsert.back().bIsWord=true;
+		
 		RecursiveMove(id,false,vReInsert);
 
 		//assign: all
@@ -240,10 +238,7 @@ public:
 
 		if(moveSelf)
 		{
-			Node *node = new Node;
-			node->content=m_dat[id].content;
-			node->bIsWord=(m_dat[id].base<0);
-			vReInsert.push_back(*node);
+			vReInsert.push_back(Node(m_dat[id].content,m_dat[id].base<0));
 
 
 			m_dat[id].base=0;
@@ -347,12 +342,8 @@ public:
 			{
 				bool bIsWord = (vWords[i].length()==k);
 
-				Node node = {
-					vWords[i].substr(0,k),
-					bIsWord,    // "Node.bIsWord" indicate whether string is a completely word or a middle node
-				};
+				vNodes.push_back(Node(vWords[i].substr(0,k),bIsWord));
 
-				vNodes.push_back(node);
 
 				if(bIsWord)
 					vWords.pop_back();
@@ -436,6 +427,9 @@ public:
 
 			while(true)
 			{
+				if(base > m_dat.size()-1)
+					break;
+
 				while(in_cpy.substr(From,To-From) == m_dat[base].content) //search trie
 				{
 					if(m_dat[base].base<0)
@@ -451,6 +445,9 @@ public:
 
 					base=abs(m_dat[base].base)+in_cpy[To];
 					To++;
+
+					if(base > m_dat.size()-1)
+						break;
 				}
 				
 				//replace if have found
@@ -512,15 +509,22 @@ public:
 	//------------------------------------------------
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------
-wstring RandomString(int minLen, int maxLen, wstring charPool)
+wstring RandomString(int minLen, int maxLen,  wstring charPool)
 {
-	size_t length = rand()%maxLen+minLen;
-	static const wstring alphabet = charPool;
-	static default_random_engine rng( time(nullptr) ) ;
-	static uniform_int_distribution<size_t> distribution( 0, alphabet.size() - 1 ) ;
-	wstring str ;
-	while( str.size() < length ) str += alphabet[ distribution(rng) ] ;
-	return str;
+	size_t len = rand()%maxLen+minLen;
+    wstring ustr=L"";
+	int range = charPool.length()-1;//0-base
+
+    srand(time(NULL));
+    for (auto i = 0; i < len; i++) 
+	{
+		random_device rd;
+		mt19937 eng(rd());
+		uniform_int_distribution<> distr(0,range);
+		int rdn = distr(eng);
+        ustr += charPool[rdn];
+    }
+    return ustr;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------
 void main()
@@ -532,8 +536,8 @@ void main()
 		int testCount = 10000;
 		int maxWordLen = 8;
 		int maxDialogLen = 110;
-		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP";
-		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP";
+		wstring dialogPool = L"@abcdefghijklmnopq，測試";
+		wstring wordPool = L"abcdefghijklmnopq";
 		//--------------------------------------------------------------------------------------------------------- test case start
 		vector<wstring> vWords;
 		for(int i=0;i<testWords;i++)
