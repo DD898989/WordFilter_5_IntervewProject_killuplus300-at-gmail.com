@@ -73,7 +73,7 @@ public:
 				myfile<<m_dat[i].check<<"\t";
 				myfile<<m_dat[i].content<<"\t";
 				for (vector<int>::iterator it=m_dat[i].childIDs.begin(); it != m_dat[i].childIDs.end(); ++it)
-					myfile<<*it<<"\t";
+					myfile<<*it<<",";
 				myfile<<endl;
 			}
 		}
@@ -543,7 +543,7 @@ void main()
 	if(true)//TRUE for test,  if test fail, change to FALSE to degug
 	{
 		//--------------------------------------------------------------------------------------------------------- test setting
-		int testWords = 20;
+		int testWords = 200;
 		int testCount = 1000;
 		int maxWordLen = 5;
 		int maxDialogLen = 110;
@@ -564,6 +564,7 @@ void main()
 
 		exa_test->m_vDictionary = vWords; //default dictionay 
 		dat_test->AddDicBase(vWords);     //default dictionay 
+		dat_test->PrintTrie();
 
 		for(int i=0;i<testCount;i++)
 		{
