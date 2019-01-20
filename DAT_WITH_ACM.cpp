@@ -122,6 +122,9 @@ public:
 		wstring content;
 		bool bIsWord;
 
+        Node(wstring ws, bool b) : content(ws), bIsWord(b) { }
+		Node(){}
+
 		bool operator==(const Node& a) const
 		{
 			return ( a.bIsWord==bIsWord && a.content ==content);
@@ -233,13 +236,8 @@ public:
 
 		int startFrom = m_dat[id].content.length();
 		for(int k=1+startFrom;k<str.length()+1;k++)
-		{
-			Node node = {
-				str.substr(0,k),
-				false, 
-			};
-			vReInsert.push_back(node);
-		}vReInsert.back().bIsWord=true;
+			vReInsert.push_back(Node(str.substr(0,k),false));
+		vReInsert.back().bIsWord=true;
 
 		RecursiveMove(id,false,vReInsert,vRefreshFailID);
 
@@ -260,10 +258,7 @@ public:
 
 		if(moveSelf)
 		{
-			Node *node = new Node;
-			node->content=m_dat[id].content;
-			node->bIsWord=(m_dat[id].base<0);
-			vReInsert.push_back(*node);
+			vReInsert.push_back(Node(m_dat[id].content,m_dat[id].base<0));
 			for (vector<int>::iterator it=m_dat[id].children_indirect.begin(); it != m_dat[id].children_indirect.end(); ++it)
 				vRefreshFailID.push_back(*it);
 
@@ -411,12 +406,7 @@ public:
 			{
 				bool bIsWord = (vWords[i].length()==k);
 
-				Node node = {
-					vWords[i].substr(0,k),
-					bIsWord,    // "Node.bIsWord" indicate whether string is a completely word or a middle node
-				};
-
-				vNodes.push_back(node);
+				vNodes.push_back(Node(vWords[i].substr(0,k),bIsWord));
 
 				if(bIsWord)
 					vWords.pop_back();
@@ -497,24 +487,29 @@ public:
 			int base = in_cpy[0]+abs(m_dat[0].base);
 			int base_pre = 0, From = 0, To = 1, failId = 0, nMatchLen = -1;
 			bool bTestOK=true;
-
 			while(true)
 			{
+				if(base > m_dat.size()-1)
+					break;
+
 				while(in_cpy.substr(From,To-From) == m_dat[base].content) //search trie
 				{
 					if(m_dat[base].base<0)
 						nMatchLen = m_dat[base].content.length();
-
+			
 					base_pre = base;
-
+					
 					if(To>=in_cpy.length())
 					{
 						To++;
 						break;
 					}
-
+					
 					base=abs(m_dat[base].base)+in_cpy[To];
 					To++;
+					
+					if(base > m_dat.size()-1)
+						break;
 				}
 
 				//replace if have found
@@ -608,8 +603,8 @@ public:
 
 			if(bTestOK)// test ok  OR  not testing now
 			{
-				cout<<endl<<"過濾後:"<<endl;
-				wcout<<input<<endl;
+				//cout<<endl<<"過濾後:"<<endl;
+				//wcout<<input<<endl;
 			}
 			else
 			{
@@ -636,15 +631,22 @@ public:
 	//------------------------------------------------
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------
-wstring RandomString(int minLen, int maxLen, wstring charPool)
+wstring RandomString(int minLen, int maxLen,  wstring charPool)
 {
-	size_t length = rand()%maxLen+minLen;
-	static const wstring alphabet = charPool;
-	static default_random_engine rng( time(nullptr) ) ;
-	static uniform_int_distribution<size_t> distribution( 0, alphabet.size() - 1 ) ;
-	wstring str ;
-	while( str.size() < length ) str += alphabet[ distribution(rng) ] ;
-	return str;
+	size_t len = rand()%maxLen+minLen;
+    wstring ustr=L"";
+	int range = charPool.length()-1;//0-base
+
+    srand(time(NULL));
+    for (auto i = 0; i < len; i++) 
+	{
+		random_device rd;
+		mt19937 eng(rd());
+		uniform_int_distribution<> distr(0,range);
+		int rdn = distr(eng);
+        ustr += charPool[rdn];
+    }
+    return ustr;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------
 void main()
@@ -655,8 +657,8 @@ void main()
 		int testWords = 200;
 		int testCount = 10000;
 		int maxWordLen = 8;
-		int maxDialogLen = 110;
-		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP";
+		int maxDialogLen = 500;
+		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP，測試中文字過濾器一二三四";
 		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP";
 		//--------------------------------------------------------------------------------------------------------- test case start
 		vector<wstring> vWords;
@@ -674,7 +676,7 @@ void main()
 
 		for(int i=0;i<testCount;i++)
 		{
-			//cout<<i<<",";
+			cout<<i<<",";
 			wstring randomDialog = RandomString(1,maxDialogLen,dialogPool);
 
 			wstring wsExample = exa_test->FilterDialog(randomDialog);
