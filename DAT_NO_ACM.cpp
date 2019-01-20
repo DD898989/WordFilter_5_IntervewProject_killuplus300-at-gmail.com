@@ -215,6 +215,19 @@ public:
 					return;
 				}
 			}
+			show error: no respone->stack over flow
+			else if(m_dat[id].content.length() == str.length()-1)
+			{
+				int temp = m_dat[id].base + str.back();
+				if(temp<=m_dat.size()-1 && m_dat[temp].content.length()==0)
+				{
+					m_dat[temp].base = -temp;
+					m_dat[temp].content = str;
+					m_dat[temp].parent = id;
+					m_dat[id].children.push_back(id);
+					return;
+				}
+			}
 		}
 
 		int startFrom = m_dat[id].content.length();
@@ -231,6 +244,7 @@ public:
 	//------------------------------------------------
 	void RecursiveMove(int id, bool moveSelf,vector<Node>  &vReInsert)
 	{
+		show error: no respone->stack over flow
 		for (vector<int>::iterator it=m_dat[id].children.begin(); it != m_dat[id].children.end(); ++it)
 		{
 			RecursiveMove(*it,true,vReInsert);
@@ -511,7 +525,7 @@ public:
 //------------------------------------------------------------------------------------------------------------------------------------------------
 wstring RandomString(int minLen, int maxLen,  wstring charPool)
 {
-	size_t len = rand()%maxLen+minLen;
+	size_t len = rand()%(maxLen-minLen+1)+minLen;
 	wstring ustr=L"";
 	int range = charPool.length()-1;//0-base
 
@@ -534,10 +548,10 @@ void main()
 		//--------------------------------------------------------------------------------------------------------- test setting
 		int testWords = 200;
 		int testCount = 10000;
-		int maxWordLen = 8;
-		int maxDialogLen = 110;
-		wstring dialogPool = L"@abcdefghijklmnopq，測試";
-		wstring wordPool = L"abcdefghijklmnopq";
+		int maxWordLen = 6;
+		int maxDialogLen = 80;
+		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL，測試";
+		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL";
 		//--------------------------------------------------------------------------------------------------------- test case start
 		vector<wstring> vWords;
 		for(int i=0;i<testWords;i++)
@@ -585,7 +599,7 @@ void main()
 			//dat_debug->PrintTrie(line);//set break point
 		}
 
-		wstring randomDialog = L"O";
+		wstring randomDialog = L"Gc";
 		wstring wsExample = exa_debug->FilterDialog(randomDialog);
 		/*                */dat_debug->FilterDialog(randomDialog,wsExample);
 		delete exa_debug;
