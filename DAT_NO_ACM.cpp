@@ -62,7 +62,7 @@ public:
 		//parent=-1: root, len=0      
 		//parent= 0: root-child, len=1    or   empty node   
 		//parent> 0: can't define
-		
+
 		vector<int> children;
 	};
 	//------------------------------------------------
@@ -108,7 +108,7 @@ public:
 		wstring content;
 		bool bIsWord;
 
-        Node(wstring ws, bool b) : content(ws), bIsWord(b) { }
+		Node(wstring ws, bool b) : content(ws), bIsWord(b) { }
 		Node(){}
 
 		bool operator==(const Node& a) const
@@ -203,25 +203,25 @@ public:
 		if(id>0)
 		{
 			if(m_dat[id].content.length() == str.length())
-		{
+			{
 				if(m_dat[id].base<0)
 				{
 					return;//is word
-		}
+				}
 				else
-		{
+				{
 					//assign: base
-			m_dat[id].base = -m_dat[id].base;
-			return;
-		}
+					m_dat[id].base = -m_dat[id].base;
+					return;
+				}
 			}
 		}
-		
+
 		int startFrom = m_dat[id].content.length();
 		for(int k=1+startFrom;k<str.length()+1;k++)
 			vReInsert.push_back(Node(str.substr(0,k),false));
 		vReInsert.back().bIsWord=true;
-		
+
 		RecursiveMove(id,false,vReInsert);
 
 		//assign: all
@@ -254,40 +254,40 @@ public:
 
 		while(vNodes.size() != 0)
 		{
-		int len = vNodes.back().content.length();
-		wstring sTarget = vNodes.back().content.substr(0,len-1);
-		
-		vector<Node> vNodesInsert;
-		while(
-			vNodes.size()>0 && 
-			vNodes.back().content.length() == len && 
-				vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same "parent"
-		{
-			vNodesInsert.push_back(vNodes.back());
-			vNodes.pop_back();
-		}
+			int len = vNodes.back().content.length();
+			wstring sTarget = vNodes.back().content.substr(0,len-1);
 
-		wstring ws = vNodesInsert[0].content;   ws.pop_back();
-		int nTarget = Search(ws,true);
+			vector<Node> vNodesInsert;
+			while(
+				vNodes.size()>0 && 
+				vNodes.back().content.length() == len && 
+				vNodes.back().content.substr(0,len-1) == sTarget) //collect the nodes that have the same "parent"
+			{
+				vNodesInsert.push_back(vNodes.back());
+				vNodes.pop_back();
+			}
+
+			wstring ws = vNodesInsert[0].content;   ws.pop_back();
+			int nTarget = Search(ws,true);
 
 			vector<int> ids;
-		for(int i=0;i<vNodesInsert.size();i++)
+			for(int i=0;i<vNodesInsert.size();i++)
 				ids.push_back(vNodesInsert[i].content.back());
-		
+
 
 			int k=1;
 			while(true)
-		{
-			int i=0;
-			for(;i<vNodesInsert.size();i++) //try to fit vNodesInsert one by one
 			{
-				ResizingDAT(k+ids[i]);
-				if(m_dat[k+ids[i]].content.length()!=0)
+				int i=0;
+				for(;i<vNodesInsert.size();i++) //try to fit vNodesInsert one by one
+				{
+					ResizingDAT(k+ids[i]);
+					if(m_dat[k+ids[i]].content.length()!=0)
 					{
 						k+=rand()/100+1;//if k=1 not fit, then random move forward to fit
 						break;
 					}
-			}
+				}
 				if(i==vNodesInsert.size())
 					break;
 			}
@@ -349,7 +349,7 @@ public:
 					vWords.pop_back();
 			}
 		}
-		
+
 		//resizing to exact space
 		for(int i=vNodes.size()-1;i>=0;i--)
 		{
@@ -359,7 +359,7 @@ public:
 				break;
 			}
 		}
-		
+
 		InsertGroup(vNodes);
 	}
 	//------------------------------------------------
@@ -449,7 +449,7 @@ public:
 					if(base > m_dat.size()-1)
 						break;
 				}
-				
+
 				//replace if have found
 				if(nMatchLen>0)
 				{
@@ -460,23 +460,23 @@ public:
 
 					nMatchLen=-1;
 				}
-					From++;
-					
-					//assing To
-					To = From+1; //"To" must greater than "From" for "in_cpy.substr(From,To-From)"
+				From++;
 
-					if(From>=in_cpy.length())
-					{
-						if(example!=L""  && example != input)
-							bTestOK = false;
-						break;
-					}
-					else
-					{
-						//assing two bases
-						base_pre = 0;
-						base = in_cpy[From]+abs(m_dat[0].base); //From from new char
-					}
+				//assing To
+				To = From+1; //"To" must greater than "From" for "in_cpy.substr(From,To-From)"
+
+				if(From>=in_cpy.length())
+				{
+					if(example!=L""  && example != input)
+						bTestOK = false;
+					break;
+				}
+				else
+				{
+					//assing two bases
+					base_pre = 0;
+					base = in_cpy[From]+abs(m_dat[0].base); //From from new char
+				}
 			}
 
 			if(bTestOK)// test ok  OR  not testing now
@@ -491,14 +491,14 @@ public:
 				wcout<<L"Example: "<<example <<endl;    
 				wcout<<L"DAT    : "<<input   <<endl;
 
-				
+
 				if(m_vDictionary.size()>0)
 				{
-				wofstream  myfile;
-				myfile.open("D:\\MyLog.txt", fstream::app);
+					wofstream  myfile;
+					myfile.open("D:\\MyLog.txt", fstream::app);
 					for (vector<wstring>::const_iterator i = m_vDictionary.begin(); i != m_vDictionary.end(); ++i)
-					myfile << *i << endl;
-				myfile.close();
+						myfile << *i << endl;
+					myfile.close();
 				}
 
 				system("pause");
@@ -512,19 +512,19 @@ public:
 wstring RandomString(int minLen, int maxLen,  wstring charPool)
 {
 	size_t len = rand()%maxLen+minLen;
-    wstring ustr=L"";
+	wstring ustr=L"";
 	int range = charPool.length()-1;//0-base
 
-    srand(time(NULL));
-    for (auto i = 0; i < len; i++) 
+	srand(time(NULL));
+	for (auto i = 0; i < len; i++) 
 	{
 		random_device rd;
 		mt19937 eng(rd());
 		uniform_int_distribution<> distr(0,range);
 		int rdn = distr(eng);
-        ustr += charPool[rdn];
-    }
-    return ustr;
+		ustr += charPool[rdn];
+	}
+	return ustr;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------
 void main()
