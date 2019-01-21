@@ -619,7 +619,7 @@ public:
 
 			if(bTestOK)// test ok  OR  not testing now
 			{
-				//cout<<endl<<"過濾後:"<<endl;
+				cout<<endl<<"過濾後:"<<endl;
 				wcout<<input<<endl;
 			}
 			else
@@ -670,15 +670,15 @@ void main()
 	if(true)//TRUE for test,  if test fail, change to FALSE to degug
 	{
 		//--------------------------------------------------------------------------------------------------------- test setting
-		int testWords = 200;
-		int testCount = 10;
+		int testDicWords = 10;
+		int testCount = 100;
 		int maxWordLen = 6;
 		int maxDialogLen = 110;
-		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL，測試";
-		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL，測試";
+		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDE，測試";
+		wstring wordPool = L"abcdefghijklmnopqrstuvwxyzABCDE";
 		//--------------------------------------------------------------------------------------------------------- test case start
 		vector<wstring> vWords;
-		for(int i=0;i<testWords;i++)
+		for(int i=0;i<testDicWords;i++)
 		{
 			wstring temp = RandomString(1,maxWordLen,wordPool);
 			vWords.push_back(temp);//////////////
@@ -698,7 +698,7 @@ void main()
 			wstring wsExample = exa_test->FilterDialog(randomDialog);
 			/*                */dat_test->FilterDialog(randomDialog,wsExample,exa_test->m_vDictionary);
 
-			wstring newWord = RandomString(3,maxWordLen,wordPool);//////////////
+			wstring newWord = RandomString(2,maxWordLen,wordPool);//////////////
 
 			exa_test->m_vDictionary.push_back(newWord);//insert word
 			dat_test->InsertSingle(newWord);           //insert word
