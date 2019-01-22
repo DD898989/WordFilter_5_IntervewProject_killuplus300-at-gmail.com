@@ -67,8 +67,6 @@ public:
 		//failId=0: no fail node
 		//failId>0: has fail node
 
-		int failFrom;//"hello" fail to "llo",  failFrom = 2
-
 		vector<int> children_direct;
 
 		vector<int> children_indirect;
@@ -90,7 +88,6 @@ public:
 			<<"base"<<"\t"
 			<<"parent"<<"\t"
 			<<"failId"<<"\t"
-			<<"failFrom"<<"\t"
 			<<"content"<<"\t"
 			<<"children_direct"<<"\t"
 			<<"children_indirect"
@@ -107,7 +104,6 @@ public:
 				myfile<<m_dat[i].base<<"\t";
 				myfile<<m_dat[i].parent<<"\t";
 				myfile<<m_dat[i].failId<<"\t";
-				myfile<<m_dat[i].failFrom<<"\t";
 				myfile<<m_dat[i].content<<"\t";
 				for (vector<int>::iterator it=m_dat[i].children_direct.begin(); it != m_dat[i].children_direct.end(); ++it){myfile<<*it<<",";}	myfile<<"\t";
 				for (vector<int>::iterator it=m_dat[i].children_indirect.begin(); it != m_dat[i].children_indirect.end(); ++it){myfile<<*it<<",";}	myfile<<"\t";
@@ -170,7 +166,6 @@ public:
 				m_dat[m].base=0;
 				m_dat[m].parent=0;
 				m_dat[m].failId=0;
-				m_dat[m].failFrom=0;
 				m_dat[m].content=L"";
 			}  m_dat[0].parent=-1;
 		}
@@ -303,7 +298,6 @@ public:
 						if(m_dat[id].failId == 0) //about == 0, if found node, only assing longest length if there's no exact word, ex:"ello" 
 						{
 							m_dat[id].failId = failId;
-							m_dat[id].failFrom = i;
 							m_dat[failId].children_indirect.push_back(id);
 							tempID = failId;
 						}
@@ -569,9 +563,11 @@ public:
 				}
 				else //move to fail node
 				{
+					int failFrom = dat_now.content.find(dat_fail.content);
+
 					//assing To
 					To -= (
-						dat_now.content.length()  - (dat_now.failFrom  + dat_fail.content.length()) 
+						dat_now.content.length()  - (failFrom  + dat_fail.content.length()) 
 						);
 
 
@@ -579,7 +575,7 @@ public:
 					{
 						while(true) //ending Check.  ex: "good to see David" ~~  "David",is word? -> fail to "vid",is word? -> ...
 						{
-							From += dat_now.failFrom;
+							From += failFrom;
 							if(dat_fail.base<0)
 							{
 								nMatchLen = dat_fail.content.length();
@@ -603,8 +599,8 @@ public:
 					}
 
 					//assing From
-					From += dat_now.failFrom;
-					if(dat_now.failFrom<1)
+					From += failFrom;
+					if(failFrom<1)
 						From++;
 
 					//if itself is word before add in_cpy[To-1]
