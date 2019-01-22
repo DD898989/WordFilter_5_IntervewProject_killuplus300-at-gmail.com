@@ -667,11 +667,12 @@ wstring RandomString(int minLen, int maxLen,  wstring charPool)
 //------------------------------------------------------------------------------------------------------------------------------------------------
 void main()
 {
+#pragma region
 	if(true)//TRUE for test,  if test fail, change to FALSE to degug
 	{
 		//--------------------------------------------------------------------------------------------------------- test setting
 		int testDicWords = 10;
-		int testCount = 100;
+		int testCount = 10000;
 		int maxWordLen = 6;
 		int maxDialogLen = 110;
 		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDE，測試";
@@ -707,6 +708,8 @@ void main()
 		delete dat_test;
 		//--------------------------------------------------------------------------------------------------------- test case over
 	}
+#pragma endregion TEST
+#pragma region
 	else
 	{
 		//--------------------------------------------------------------------------------------------------------- debug case start
@@ -730,8 +733,8 @@ void main()
 		delete dat_debug;
 		//--------------------------------------------------------------------------------------------------------- debug case over
 	}
-
-
+#pragma endregion DEBUG
+#pragma region
 	//------------------------------------------------------------------------------------------------------------- main case start
 	string dicPath = "D:\\Dictionary.txt";
 	cout<<"Please check dictionary path: "<<dicPath<<endl;  
@@ -746,5 +749,6 @@ void main()
 		dat->FilterDialog();
 	}
 	delete dat;
+#pragma endregion MAIN
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------
