@@ -58,7 +58,7 @@ public:
 		//base>0: mid node   
 		//base=0: empty node
 
-		int parent;
+		//int parent;
 		//parent=-1: root, len=0      
 		//parent= 0: root-child, len=1    or   empty node   
 		//parent> 0: can't define
@@ -86,7 +86,6 @@ public:
 		myfile
 			<<"ID"<<"\t"
 			<<"base"<<"\t"
-			<<"parent"<<"\t"
 			<<"failId"<<"\t"
 			<<"content"<<"\t"
 			<<"children_direct"<<"\t"
@@ -96,13 +95,12 @@ public:
 		for(int i=0;i<m_dat.size();i++)
 		{
 			if(m_dat[i].base!=0 ||
-				m_dat[i].parent!=0 ||
+				/*m_dat[i].parent!=0 ||*/
 				m_dat[i].content.length() !=0 
 				)
 			{
 				myfile<<i<<"\t";
 				myfile<<m_dat[i].base<<"\t";
-				myfile<<m_dat[i].parent<<"\t";
 				myfile<<m_dat[i].failId<<"\t";
 				myfile<<m_dat[i].content<<"\t";
 				for (vector<int>::iterator it=m_dat[i].children_direct.begin(); it != m_dat[i].children_direct.end(); ++it){myfile<<*it<<",";}	myfile<<"\t";
@@ -118,7 +116,7 @@ public:
 		wstring content;
 		bool bIsWord;
 
-        Node(wstring ws, bool b) : content(ws), bIsWord(b) { }
+		Node(wstring ws, bool b) : content(ws), bIsWord(b) { }
 		Node(){}
 
 		bool operator==(const Node& a) const
@@ -164,10 +162,10 @@ public:
 			for(int m=Old;m<m_dat.size();m++)
 			{
 				m_dat[m].base=0;
-				m_dat[m].parent=0;
+				/*m_dat[m].parent=0;*/
 				m_dat[m].failId=0;
 				m_dat[m].content=L"";
-			}  m_dat[0].parent=-1;
+			}  //m_dat[0].parent=-1;
 		}
 	}
 	//------------------------------------------------
@@ -176,39 +174,124 @@ public:
 		ResizingDAT(0XFFFF);//0XFFFF=65535
 	}
 	//------------------------------------------------
-	int Search(const wstring& str, bool bFindNode = false, bool bFindNearestParent = false) //return id or -1 
+	bool CheckValid(int first,int second)
 	{
-		int base=str[0]+abs(m_dat[0].base);
+		if(second>m_dat.size()-1)
+			return false;
+	
+		wstring wsFirst = m_dat[first].content;
+		wstring wsSecond = m_dat[second].content;
+
+		if(wsFirst.length() >= wsSecond.length())
+			return false;
+
+		wsSecond.pop_back();
+		if(wsFirst != wsSecond)
+			return false;
+
+		return true;
+	}
+	//------------------------------------------------
+	int Search_Exact(const wstring& str) //return id or -1 
+	{
+		if(str==L"")
+			return 0;
+		
 		int base_pre=0;
+		int base = 0;
 
 		for(int j=0;j<str.length();j++)
 		{
-			if(base>m_dat.size()-1)
-				return (bFindNearestParent) ? base_pre : -1;
+			base_pre = base;
+			base = abs(m_dat[base].base)+str[j];
 
-			if(base_pre ==m_dat[base].parent  &&   m_dat[base].base!=0/*for first char*/  &&   str[j] ==m_dat[base].content.back())
+			if(CheckValid(base_pre,base))
 			{
-				if(j==str.length()-1)
-				{
-					if(m_dat[base].base<0 || bFindNode) 
-						return base;
-					else
-						return (bFindNearestParent) ? base_pre : -1;
-				}
-
-				base_pre = base;
-				base=abs(m_dat[base].base)+str[j+1];
 			}
 			else
-				return (bFindNearestParent) ? base_pre : -1;
+				return -1;
 		}
+		if(m_dat[base].base<0)
+			return base;
+		else
+			return -1;
+	}
+	//------------------------------------------------
+	int Search_Node(const wstring& str) //return id or -1 
+	{
+		if(str==L"")
+			return 0;
+		
+		int base_pre=0;
+		int base = 0;
 
-		return base_pre;// str length = 0
+		for(int j=0;j<str.length();j++)
+		{
+			base_pre = base;
+			base = abs(m_dat[base].base)+str[j];
+
+			if(CheckValid(base_pre,base))
+			{
+			}
+			else
+				return -1;
+		}
+		return base;
+	}
+	//------------------------------------------------
+	int Search_Nearest_Node(const wstring& str) //return id or -1 
+	{
+		if(str==L"")
+			return 0;
+		
+		int base_pre=0;
+		int base = 0;
+
+		for(int j=0;j<str.length();j++)
+		{
+			base_pre = base;
+			base = abs(m_dat[base].base)+str[j];
+
+			if(CheckValid(base_pre,base))
+			{
+				if(j==str.length()-1)
+					return base;
+			}
+			else
+				break;
+		}
+		return base_pre;
+	}
+	//------------------------------------------------
+	int Search_Nearest_Exact(const wstring& str) //return id or -1 
+	{
+		if(str==L"")
+			return 0;
+		
+		int base_pre=0;
+		int base = 0;
+
+		for(int j=0;j<str.length();j++)
+		{
+			base_pre = base;
+			base = abs(m_dat[base].base)+str[j];
+
+			if(m_dat[base].base>=0)
+				return base_pre;
+
+			if(CheckValid(base_pre,base))
+			{
+			}
+			else
+				break;
+		}
+		return base_pre;
 	}
 	//------------------------------------------------
 	void InsertSingle(wstring str)// for single insert
 	{
-		int id = Search(str,true,true);
+
+		int id = Search_Nearest_Node(str);
 		vector<int>  vRefreshFailID;
 		vector<Node>  vReInsert;
 
@@ -246,6 +329,7 @@ public:
 		int startFrom = m_dat[id].content.length();
 		for(int k=1+startFrom;k<str.length()+1;k++)
 			vReInsert.push_back(Node(str.substr(0,k),false));
+
 		vReInsert.back().bIsWord=true;
 
 		RecursiveMove(id,false,vReInsert,vRefreshFailID);
@@ -274,7 +358,7 @@ public:
 
 
 			m_dat[id].base=0;
-			m_dat[id].parent=0;
+			//m_dat[id].parent=0;
 			m_dat[id].children_direct.clear();
 			m_dat[id].children_indirect.clear();
 			m_dat[id].content=L"";
@@ -285,41 +369,34 @@ public:
 	{
 		wstring temp = m_dat[id].content;
 		m_dat[id].failId=0;
-		int tempID = 0;
 		if(temp.length()>0)
 		{
 			for(int i=1;i<temp.length();i++)
 			{
-				for(int j=temp.length()-i;j>0;j--)
+				int failId = Search_Nearest_Node(temp.substr(i,temp.length()-i)); 
+				if(failId>0)
 				{
-					int failId = Search(temp.substr(i,j),true);  //ex:"hello"    temp.substr(i,j) -->  "ello","ell","el","e","llo","lo", ...
-					if(failId>0)
-					{
-						if(m_dat[id].failId == 0) //about == 0, if found node, only assing longest length if there's no exact word, ex:"ello" 
-						{
-							m_dat[id].failId = failId;
-							m_dat[failId].children_indirect.push_back(id);
-							tempID = failId;
-						}
+					int failId2 = Search_Nearest_Exact(m_dat[failId].content); 
 
-						if(m_dat[failId].base<0) // assing longest exact word if found
-						{
-							m_dat[id].failId = failId;
-							if(tempID>0)
-								m_dat[tempID].children_indirect.pop_back();
-							m_dat[failId].children_indirect.push_back(id);
-							break;
-						}
+					if(failId2>0)
+					{
+						m_dat[id].failId = failId2;
+						m_dat[failId2].children_indirect.push_back(id);
 					}
-				}
-				if(m_dat[id].failId>0) // only assign fail case that is closest to first char, ex: "e..."
+					else
+					{
+						m_dat[id].failId = failId;
+						m_dat[failId].children_indirect.push_back(id);
+					}
 					break;
+				}
 			}
 		}
 	}
 	//------------------------------------------------
 	void InsertGroup(vector<Node> &vNodes)
 	{
+		vector<int>  vFailID;
 		sort(vNodes.begin(), vNodes.end(),CompareNodeReverse());
 
 		while(vNodes.size() != 0)
@@ -338,7 +415,7 @@ public:
 			}
 
 			wstring ws = vNodesInsert[0].content;   ws.pop_back();
-			int nTarget = Search(ws,true);
+			int nTarget = Search_Node(ws);
 
 			vector<int> ids;
 			for(int i=0;i<vNodesInsert.size();i++)
@@ -362,8 +439,6 @@ public:
 					break;
 			}
 
-
-
 			m_dat[nTarget].children_direct.clear();
 
 			//assign: base
@@ -373,8 +448,10 @@ public:
 			{
 				int id = k+ids[n];
 
+				vFailID.push_back(id);
+
 				//assign: parent
-				m_dat[id].parent=nTarget;
+				//m_dat[id].parent=nTarget;
 
 				//assign: content
 				m_dat[id].content=vNodesInsert[n].content;
@@ -387,13 +464,15 @@ public:
 						m_dat[nTarget].children_direct.push_back(id);
 				}
 
-				//assign: failId,failFrom,children_indirect
-				GetFailId(id);
-
 				//assign: base
 				m_dat[id].base = (vNodesInsert[n].bIsWord) ? -id : id;
 			}
 		}
+
+
+		//assign: failId,failFrom,children_indirect
+		for (vector<int>::iterator it=vFailID.begin(); it != vFailID.end(); ++it)
+			GetFailId(*it);
 	}
 	//------------------------------------------------
 	void AddDicBase(vector<wstring> vWords)
@@ -668,7 +747,7 @@ void main()
 	{
 		//--------------------------------------------------------------------------------------------------------- test setting
 		int testDicWords = 10;
-		int testCount = 10000;
+		int testCount = 90000;
 		int maxWordLen = 6;
 		int maxDialogLen = 110;
 		wstring dialogPool = L"@abcdefghijklmnopqrstuvwxyzABCDE，測試";
@@ -722,7 +801,7 @@ void main()
 			//dat_debug->PrintTrie(line);//set break point
 		}
 
-		wstring randomDialog = L"Gc";
+		wstring randomDialog = L"ueihohdz";
 		wstring wsExample = exa_debug->FilterDialog(randomDialog);
 		/*                */dat_debug->FilterDialog(randomDialog,wsExample);
 		delete exa_debug;
