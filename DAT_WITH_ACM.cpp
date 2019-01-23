@@ -195,7 +195,7 @@ public:
 	int Search_Exact(const wstring& str) //return id or -1 
 	{
 		if(str==L"")
-			return 0;
+			return -1;
 		
 		int base_pre=0;
 		int base = 0;
@@ -266,7 +266,7 @@ public:
 	int Search_Nearest_Exact(const wstring& str) //return id or -1 
 	{
 		if(str==L"")
-			return 0;
+			return -1;
 		
 		int base_pre=0;
 		int base = 0;
@@ -276,13 +276,7 @@ public:
 			base_pre = base;
 			base = abs(m_dat[base].base)+str[j];
 
-			if(m_dat[base].base>=0)
-				return base_pre;
-
-			if(CheckValid(base_pre,base))
-			{
-			}
-			else
+			if(m_dat[base].base>=0 || CheckValid(base_pre,base))
 				break;
 		}
 		return base_pre;
