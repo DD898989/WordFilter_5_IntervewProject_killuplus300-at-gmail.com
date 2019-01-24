@@ -239,6 +239,32 @@ public:
 		return base;
 	}
 	//------------------------------------------------
+	int Search_Nearest_Exact(const wstring& str) //return id or -1 
+	{
+		int base_exact = -1;
+
+		if(str==L"")
+			return base_exact;
+		
+		int base_pre=0;
+		int base = 0;
+
+		for(int j=0;j<str.length();j++)
+		{
+			base_pre = base;
+			base = abs(m_dat[base].base)+str[j];
+			
+			if(CheckValid(base_pre,base))
+			{
+				if(m_dat[base].base<0)
+					base_exact = base;
+			}
+			else
+				break;
+		}
+		return base_pre;
+	}
+	//------------------------------------------------
 	int Search_Nearest_Node(const wstring& str) //return id or -1 
 	{
 		if(str==L"")
@@ -258,25 +284,6 @@ public:
 					return base;
 			}
 			else
-				break;
-		}
-		return base_pre;
-	}
-	//------------------------------------------------
-	int Search_Nearest_Exact(const wstring& str) //return id or -1 
-	{
-		if(str==L"")
-			return -1;
-		
-		int base_pre=0;
-		int base = 0;
-
-		for(int j=0;j<str.length();j++)
-		{
-			base_pre = base;
-			base = abs(m_dat[base].base)+str[j];
-
-			if(m_dat[base].base>=0 || CheckValid(base_pre,base))
 				break;
 		}
 		return base_pre;
@@ -568,31 +575,34 @@ public:
 			//-----------------------
 			int base = in_cpy[0]+abs(m_dat[0].base);
 			int base_pre = 0, From = 0, To = 1, failId = 0, nMatchLen = -1;
-			bool bTestOK=true;
 
 			while(true)
 			{
 				if(base > m_dat.size()-1)
-					break;
-
-				while(in_cpy.substr(From,To-From) == m_dat[base].content) //search trie
 				{
-					if(m_dat[base].base<0)
-						nMatchLen = m_dat[base].content.length();
-
-					base_pre = base;
-
-					if(To>=in_cpy.length())
+				
+				}
+				else
+				{
+					while(in_cpy.substr(From,To-From) == m_dat[base].content) //search trie
 					{
+						if(m_dat[base].base<0)
+							nMatchLen = m_dat[base].content.length();
+
+						base_pre = base;
+
+						if(To>=in_cpy.length())
+						{
+							To++;
+							break;
+						}
+
+						base=abs(m_dat[base].base)+in_cpy[To];
 						To++;
-						break;
+
+						if(base > m_dat.size()-1)
+							break;
 					}
-
-					base=abs(m_dat[base].base)+in_cpy[To];
-					To++;
-
-					if(base > m_dat.size()-1)
-						break;
 				}
 
 				//replace if have found
@@ -601,7 +611,7 @@ public:
 					input.replace(From, nMatchLen, wstring(nMatchLen, L'*'));
 
 					if(From+nMatchLen == input.length())
-						break;
+						break; //----------------endfilter
 
 					nMatchLen=-1;
 				}
@@ -623,9 +633,7 @@ public:
 
 					if(From>=in_cpy.length())
 					{
-						if(example!=L""  && example != input)
-							bTestOK = false;
-						break;
+						break; //----------------endfilter
 					}
 					else
 					{
@@ -666,9 +674,7 @@ public:
 								break;
 						}
 
-						if(example!=L""  && example != input)
-							bTestOK = false;
-						break; 
+						break; //----------------endfilter
 					}
 
 					//assing From
@@ -685,8 +691,8 @@ public:
 					base_pre = failId;
 				}
 			}
-
-			if(bTestOK)// test ok  OR  not testing now
+			
+			if(example==L"" || example == input)// test ok  OR  not testing now
 			{
 				cout<<endl<<"過濾後:"<<endl;
 				wcout<<input<<endl;
@@ -795,7 +801,7 @@ void main()
 			//dat_debug->PrintTrie(line);//set break point
 		}
 
-		wstring randomDialog = L"ueihohdz";
+		wstring randomDialog = L"da，pBu";
 		wstring wsExample = exa_debug->FilterDialog(randomDialog);
 		/*                */dat_debug->FilterDialog(randomDialog,wsExample);
 		delete exa_debug;
